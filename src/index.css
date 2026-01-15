@@ -1,0 +1,26 @@
+/* 1. El import DEBE ir hasta arriba */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* 2. Luego las directivas de Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 3. Finalmente tus estilos globales */
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: #000000; 
+  color: white;
+  overflow-x: hidden;
+  /* CAMBIO AQUÍ: Quita height: 100% y pon min-height */
+  min-height: 100vh; 
+  font-family: 'Poppins', sans-serif; /* Cambia Inter por Poppins si ya la instalaste */
+}
+
+#root {
+  /* CAMBIO AQUÍ: Quita height: 100% */
+  width: 100%;
+
+}
+
