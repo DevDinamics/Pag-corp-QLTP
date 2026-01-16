@@ -34,7 +34,7 @@ const InfoCard = ({ service, index }) => {
       transition={{ duration: 0.6, delay: index * 0.1 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="relative h-[400px] rounded-2xl border border-white/10 bg-[#0a0a0a] p-8 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-qualtop-orange/30"
+      className="relative min-h-[400px] rounded-2xl border border-white/10 bg-[#0a0a0a] p-8 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-qualtop-orange/30"
     >
       {/* --- EFECTO DE FONDO (PATRÓN TECNOLÓGICO) --- */}
       <div 

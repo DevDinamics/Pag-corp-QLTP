@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Instagram, Linkedin, Facebook } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
   
@@ -19,10 +20,13 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
     open: { x: 0, opacity: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
   };
 
+  // CORRECCIÓN DE RUTAS: Usamos rutas absolutas con "/" para que funcionen desde el Blog
   const mainLinks = [
-    { title: "Inicio", href: "#" }, { title: "Nosotros", href: "#" },
-    { title: "Servicios", href: "#" }, { title: "Blog", href: "./ass" },
-    { title: "Contacto", href: "#" }
+    { title: "Inicio", href: "/" }, 
+    { title: "Nosotros", href: "/#nosotros" },
+    { title: "Servicios", href: "/#servicios" }, // ID en minúsculas para coincidir con el estándar
+    { title: "Blog", href: "/blog" },
+    { title: "Contacto", href: "/#contacto" }
   ];
 
   const legalLinks = ["Política de Seguridad de la información", "Política Antisoborno", "Línea de denuncia"];
@@ -41,13 +45,14 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
           <div className="w-full relative z-10 border-b border-white/5 bg-black/20">
             <div 
               className="max-w-7xl mx-auto px-6 flex justify-between items-center transition-all duration-500"
-              style={{ height: isScrolled ? '72px' : '112px' }} // Sincroniza posición exacta con Navbar
+              style={{ height: isScrolled ? '72px' : '112px' }} 
             >
-              <div className="flex items-center group cursor-pointer">
+              {/* Logo con Link para volver al inicio */}
+              <Link to="/" onClick={onClose} className="flex items-center group cursor-pointer">
                 <div className={`relative transition-all duration-500 ${isScrolled ? 'w-24' : 'w-32'}`}>
                   <img src="https://qualtop.com/wp-content/uploads/2025/09/Q_Logo.svg" alt="Logo" className="w-full h-auto object-contain" />
                 </div>
-              </div>
+              </Link>
 
               <button onClick={onClose} className="group flex items-center gap-4 text-xs font-bold uppercase tracking-[0.3em]">
                 <span className="text-gray-400 group-hover:text-white transition-colors hidden md:block">Cerrar</span>
@@ -62,14 +67,18 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
           <div className="flex-grow flex items-center relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12">
             <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 
-                {/* ENLACES (Corrección de la 'g' y Tamaño reducidos) */}
                 <motion.div variants={containerVars} initial="initial" animate="open" exit="initial" className="flex flex-col gap-3 md:gap-5">
                     {mainLinks.map((link, index) => (
                         <div key={index} className="overflow-visible group py-1"> 
                             <motion.div variants={linkVars}>
-                                <a href={link.href} className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-[1.2] text-gray-400 hover:text-white transition-all duration-300 inline-block">
+                                {/* CORRECCIÓN: Usamos Link y agregamos onClick={onClose} para que el menú se cierre al navegar */}
+                                <Link 
+                                    to={link.href} 
+                                    onClick={onClose}
+                                    className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-[1.2] text-gray-400 hover:text-white transition-all duration-300 inline-block"
+                                >
                                     {link.title}
-                                </a>
+                                </Link>
                             </motion.div>
                         </div>
                     ))}
@@ -80,10 +89,15 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
                     <div className="flex flex-col gap-8 w-full">
                         <p className="text-qualtop-orange font-bold tracking-[0.4em] text-[15px] uppercase opacity-60 lg:text-right">SOPORTE & LEGAL</p>
                         {legalLinks.map((text, i) => (
-                            <a key={i} href="#" className="group relative text-gray-400 hover:text-white transition-all duration-500 text-sm md:text-lg flex items-center lg:justify-end gap-4">
+                            <Link 
+                                key={i} 
+                                to="#" 
+                                onClick={onClose}
+                                className="group relative text-gray-400 hover:text-white transition-all duration-500 text-sm md:text-lg flex items-center lg:justify-end gap-4"
+                            >
                                 <span className="group-hover:-translate-x-2 transition-transform duration-500 order-2 lg:order-1">{text}</span>
                                 <div className="h-[1px] w-0 group-hover:w-12 bg-qualtop-orange transition-all duration-500 order-1 lg:order-2" />
-                            </a>
+                            </Link>
                         ))}
                     </div>
                     <div className="flex gap-5 lg:justify-end w-full">

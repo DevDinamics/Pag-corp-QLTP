@@ -45,7 +45,13 @@ export default function ServicesSection() {
   const [activeTab, setActiveTab] = useState('modernizacion');
 
   return (
-    <section className="bg-black py-24 px-6 text-white overflow-hidden min-h-screen">
+    <section className="bg-black py-24 px-6 text-white overflow-hidden min-h-screen relative">
+      
+      {/* --- CORRECCIÓN DE OFFSET (ANCLA FANTASMA) --- */}
+      {/* Este div invisible está 32 unidades (aprox 128px) arriba de la sección real.
+          Al recibir el id="servicios", el navegador scrollea aquí, dejando el título visible abajo. */}
+      <div id="servicios" className="absolute -top-32 left-0 w-full h-1 pointer-events-none" />
+
       <div className="max-w-7xl mx-auto">
         
         {/* TÍTULO PRINCIPAL */}
@@ -124,7 +130,7 @@ export default function ServicesSection() {
                 {card.desc && <p className="text-gray-400 text-sm mt-4">{card.desc}</p>}
               </div>
 
-              {/* IMAGEN DE FONDO (Si no hay imagen usa un patrón sutil) */}
+              {/* IMAGEN DE FONDO */}
               <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity">
                 <div 
                   className="w-full h-full bg-cover bg-center"
@@ -136,7 +142,7 @@ export default function ServicesSection() {
           ))}
         </div>
 
-        {/* BOTÓN CTA (Solo para IA) */}
+        {/* BOTÓN CTA */}
         {activeTab === 'ia' && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}

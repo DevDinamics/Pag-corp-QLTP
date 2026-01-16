@@ -20,13 +20,57 @@ import ContactHome from './ContactHome';
 
 
 /* =========================================
-   AUXILIAR: RESET DE SCROLL
+   AUXILIAR: RESET DE SCROLL AL CAMBIAR RUTA
    ========================================= */
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+  return null;
+};
+
+/* =========================================
+   AUXILIAR: SCROLL A SECCIONES (CORREGIDO)
+   ========================================= */
+const ScrollToHashElement = () => {
+  const { hash, pathname } = useLocation();
+
+  useEffect(() => {
+    // Función centralizada para hacer el scroll
+    const handleScroll = () => {
+      if (hash) {
+        // Quitamos el # y buscamos el ID en el documento
+        const element = document.getElementById(hash.replace('#', ''));
+        if (element) {
+          // Timeout ligero para asegurar que la sección esté renderizada
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+      }
+    };
+
+    // 1. Ejecutar al cargar o cambiar ruta/hash (Comportamiento normal)
+    handleScroll();
+
+    // 2. Escuchar clics manuales (SOLUCIÓN AL BUG DE "YA ESTOY AQUÍ")
+    // Esto detecta si haces clic en un link que lleva a la misma página donde ya estás
+    const handleClick = (e) => {
+      const target = e.target.closest('a');
+      // Verificamos si es un link, si tiene hash (#), y si es la misma página actual
+      if (target && target.hash && target.origin === window.location.origin && target.pathname === window.location.pathname) {
+        setTimeout(handleScroll, 100); // Forzamos el scroll nuevamente
+      }
+    };
+
+    window.addEventListener('click', handleClick);
+    
+    // Limpieza del evento al desmontar
+    return () => window.removeEventListener('click', handleClick);
+
+  }, [hash, pathname]);
+
   return null;
 };
 
@@ -71,14 +115,10 @@ const Home = () => (
         </div>
       </div>
 
-      {/* DEGRADADO DE FUSIÓN (z-20 para estar encima del contenido siguiente) */}
+      {/* DEGRADADO DE FUSIÓN */}
       <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-b from-transparent to-[#000000] z-20 pointer-events-none" />
     </section>
 
-    {/* 2. SECCIONES DE CONTENIDO (Fusión Seamless) */}
-    {/* -mt-32: Sube esta sección 128px para que entre debajo del degradado.
-        relative z-10: Se mantiene debajo del z-20 del degradado.
-    */}
     <div className="relative z-10 bg-[#000000] -mt-32 pb-20">
       <ServicesSection />
       <ProductsSection />
@@ -97,6 +137,9 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
+      {/* Agregamos el ayudante de scroll corregido aquí */}
+      <ScrollToHashElement />
+      
       <main className="relative w-full min-h-screen bg-[#000000] selection:bg-qualtop-orange selection:text-white font-sans text-white">      
         <Navbar />
         
