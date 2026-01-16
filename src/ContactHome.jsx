@@ -51,13 +51,6 @@ export default function ContactHome() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              {/* Etiqueta Superior */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-8">
-                <div className="w-2 h-2 rounded-full bg-qualtop-orange animate-pulse" />
-                <span className="text-xs md:text-sm text-gray-300 font-mono tracking-widest uppercase">
-                  Open for Business
-                </span>
-              </div>
               
               {/* Título Responsivo Masivo */}
               <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter mb-8 leading-[0.9]">

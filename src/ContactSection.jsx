@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle2, Mail, Phone } from 'lucide-react';
+import { Send, CheckCircle2, Mail, Phone, Loader2, AlertCircle } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 
-// --- COMPONENTE DE INPUT REUTILIZABLE (Responsive) ---
-const InputGroup = ({ label, type = "text", placeholder, required = false, isTextArea = false }) => {
+// --- INPUT REUTILIZABLE (Ahora recibe 'name') ---
+const InputGroup = ({ label, name, type = "text", placeholder, required = false, isTextArea = false }) => {
   return (
     <div className="group relative">
-      {/* El Input/Textarea */}
       {isTextArea ? (
         <textarea 
+          name={name} // Importante para EmailJS
           required={required}
           placeholder=" " 
           className="peer w-full bg-[#111] text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange transition-all duration-300 min-h-[120px] resize-none text-base"
@@ -16,13 +17,12 @@ const InputGroup = ({ label, type = "text", placeholder, required = false, isTex
       ) : (
         <input 
           type={type}
+          name={name} // Importante para EmailJS
           required={required}
           placeholder=" "
           className="peer w-full bg-[#111] text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange transition-all duration-300 text-base"
         />
       )}
-
-      {/* La Etiqueta Flotante */}
       <label className="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-300 pointer-events-none 
         peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
         peer-focus:top-1 peer-focus:text-xs peer-focus:text-qualtop-orange
@@ -33,10 +33,11 @@ const InputGroup = ({ label, type = "text", placeholder, required = false, isTex
   );
 };
 
-// --- COMPONENTE SELECT PERSONALIZADO ---
-const SelectGroup = ({ label, options, required = false }) => (
+// --- SELECT REUTILIZABLE (Ahora recibe 'name') ---
+const SelectGroup = ({ label, name, options, required = false }) => (
   <div className="group relative">
     <select 
+      name={name} // Importante para EmailJS
       required={required}
       className="peer w-full bg-[#111] text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange transition-all duration-300 appearance-none cursor-pointer text-base"
     >
@@ -46,7 +47,6 @@ const SelectGroup = ({ label, options, required = false }) => (
     <label className="absolute left-4 top-1 text-xs text-gray-400 transition-all duration-300 pointer-events-none">
       {label} {required && <span className="text-qualtop-orange">*</span>}
     </label>
-    {/* Flechita custom */}
     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 peer-focus:text-qualtop-orange transition-colors">
       <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
     </div>
@@ -54,12 +54,31 @@ const SelectGroup = ({ label, options, required = false }) => (
 );
 
 export default function ContactSection() {
-  const [formState, setFormState] = useState('idle');
+  const form = useRef(); // Referencia al formulario
+  const [formState, setFormState] = useState('idle'); // 'idle', 'loading', 'success', 'error'
 
-  const handleSubmit = (e) => {
+  const sendEmail = (e) => {
     e.preventDefault();
     setFormState('loading');
-    setTimeout(() => setFormState('success'), 2000);
+
+    // REEMPLAZA ESTOS VALORES CON LOS TUYOS DE EMAILJS
+    const SERVICE_ID = 'service_0t7rujq';  // Tu Service ID (ej: service_z8s9d8s)
+    const TEMPLATE_ID = 'template_hx9719f'; // Tu Template ID (ej: template_k2j9s8d)
+    const PUBLIC_KEY = 'OlKg1l5iedr6UKUvd';  // Tu Public Key (está en Account > API Keys)
+
+    emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, form.current, PUBLIC_KEY)
+      .then((result) => {
+          console.log(result.text);
+          setFormState('success');
+          e.target.reset(); // Limpia el formulario
+          // Volver a estado normal después de 5 segundos
+          setTimeout(() => setFormState('idle'), 5000);
+      }, (error) => {
+          console.log(error.text);
+          setFormState('error');
+          // Volver a intentar después de 3 segundos
+          setTimeout(() => setFormState('idle'), 3000);
+      });
   };
 
   return (
@@ -76,14 +95,12 @@ export default function ContactSection() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          // FIX RESPONSIVO: 'lg:sticky' (solo pegajoso en desktop) y 'lg:top-24'
           className="relative lg:sticky lg:top-24"
         >
           <span className="inline-block px-3 py-1 mb-4 md:mb-6 text-[10px] md:text-xs font-bold tracking-widest text-qualtop-orange uppercase border border-qualtop-orange/30 rounded-full bg-qualtop-orange/10">
             Hablemos Claro
           </span>
           
-          {/* FIX RESPONSIVO: Texto más pequeño en móvil (text-3xl) */}
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 md:mb-6 leading-tight">
             Conversemos sobre un <span className="text-qualtop-orange bg-clip-text">reto real</span> de tu operación.
           </h2>
@@ -124,34 +141,35 @@ export default function ContactSection() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="relative w-full"
         >
-          {/* Tarjeta de Vidrio */}
-          {/* FIX RESPONSIVO: p-5 en móvil (antes p-8) para ganar espacio horizontal */}
           <div className="bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-5 md:p-10 shadow-2xl relative overflow-hidden">
              
              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-qualtop-orange/50 to-transparent"></div>
 
-             <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
+             {/* AGREGAMOS ref={form} Y onSubmit={sendEmail} */}
+             <form ref={form} onSubmit={sendEmail} className="space-y-5 md:space-y-6">
                 
                 {/* Fila 1 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                  <InputGroup label="Nombre completo" required />
-                  <InputGroup label="Correo electrónico" type="email" required />
+                  {/* AGREGAMOS name="user_name" */}
+                  <InputGroup name="user_name" label="Nombre completo" required />
+                  {/* AGREGAMOS name="user_email" */}
+                  <InputGroup name="user_email" label="Correo electrónico" type="email" required />
                 </div>
 
                 {/* Fila 2 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                  <InputGroup label="Compañía / Empresa" required />
-                  <InputGroup label="Número telefónico" type="tel" required />
+                  <InputGroup name="company" label="Compañía / Empresa" required />
+                  <InputGroup name="phone" label="Número telefónico" type="tel" required />
                 </div>
 
                 {/* Fila 3 - Selects */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                  <SelectGroup label="Industria" options={["Banca & Finanzas", "Retail", "Manufactura", "Logística", "Otro"]} required />
-                  <SelectGroup label="Servicio de interés" options={["Modernización Tecnológica", "Soluciones de IA", "Consultoría", "Auditoría QA"]} required />
+                  <SelectGroup name="industry" label="Industria" options={["Banca & Finanzas", "Retail", "Manufactura", "Logística", "Otro"]} required />
+                  <SelectGroup name="service" label="Servicio de interés" options={["Modernización Tecnológica", "Soluciones de IA", "Consultoría", "Auditoría QA"]} required />
                 </div>
                 
                 {/* Mensaje */}
-                <InputGroup label="Cuéntanos sobre tu reto..." isTextArea required />
+                <InputGroup name="message" label="Cuéntanos sobre tu reto..." isTextArea required />
 
                 {/* Checkbox Legal */}
                 <div className="flex items-start gap-3 mt-2">
@@ -164,12 +182,14 @@ export default function ContactSection() {
                   </p>
                 </div>
 
-                {/* Botón Submit */}
+                {/* Botón Submit con Estados */}
                 <button 
                   type="submit" 
-                  disabled={formState !== 'idle'}
+                  disabled={formState === 'loading' || formState === 'success'}
                   className={`w-full group relative flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-sm tracking-widest uppercase transition-all duration-500
-                    ${formState === 'success' ? 'bg-green-600 text-white' : 'bg-qualtop-orange hover:bg-orange-600 text-white shadow-[0_0_20px_rgba(255,77,0,0.3)] hover:shadow-[0_0_40px_rgba(255,77,0,0.5)]'}
+                    ${formState === 'success' ? 'bg-green-600 text-white cursor-default' : 
+                      formState === 'error' ? 'bg-red-600 text-white' :
+                      'bg-qualtop-orange hover:bg-orange-600 text-white shadow-[0_0_20px_rgba(255,77,0,0.3)] hover:shadow-[0_0_40px_rgba(255,77,0,0.5)]'}
                   `}
                 >
                   {formState === 'idle' && (
@@ -179,12 +199,21 @@ export default function ContactSection() {
                     </>
                   )}
                   {formState === 'loading' && (
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      <span>Enviando...</span>
+                    </>
                   )}
                   {formState === 'success' && (
                     <>
-                      <span>¡Enviado!</span>
+                      <span>¡Mensaje Enviado!</span>
                       <CheckCircle2 size={18} />
+                    </>
+                  )}
+                  {formState === 'error' && (
+                    <>
+                      <span>Error al enviar</span>
+                      <AlertCircle size={18} />
                     </>
                   )}
                 </button>

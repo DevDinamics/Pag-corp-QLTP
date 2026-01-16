@@ -1,8 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowUpRight, Clock, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowUpRight, ChevronRight, Search, X } from 'lucide-react';
 
+// --- TUS DATOS ORIGINALES ---
 const posts = [
   {
     id: 'gestion-siniestros',
@@ -55,91 +56,173 @@ const posts = [
 ];
 
 export default function BlogHome() {
+  // --- LÓGICA DE BÚSQUEDA ---
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredPosts, setFilteredPosts] = useState(posts);
+
+  useEffect(() => {
+    // 1. Leemos el parámetro ?q= de la URL
+    const searchParams = new URLSearchParams(location.search);
+    const query = searchParams.get('q') || "";
+    setSearchTerm(query);
+
+    // 2. Filtramos los posts
+    if (query) {
+      const lowerQuery = query.toLowerCase();
+      const results = posts.filter(post => 
+        post.title.toLowerCase().includes(lowerQuery) || 
+        post.excerpt.toLowerCase().includes(lowerQuery) ||
+        post.category.toLowerCase().includes(lowerQuery)
+      );
+      setFilteredPosts(results);
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [location.search]);
+
+  const clearSearch = () => {
+    navigate('/blog');
+    setSearchTerm("");
+  };
+
   return (
     <div className="bg-[#020202] min-h-screen pt-40 pb-20 px-6">
       <div className="max-w-7xl mx-auto">
         
-        <header className="mb-24">
-          <motion.p 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="text-qualtop-orange font-black text-xs tracking-[0.5em] uppercase mb-4"
-          >
-            
-          </motion.p>
+        {/* HEADER ORIGINAL */}
+        <header className="mb-16 md:mb-24 text-center">
           <motion.h1 
-            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-            className="text-6xl md:text-8xl font-bold text-white tracking-tighter text-center"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="text-6xl md:text-8xl font-bold text-white tracking-tighter"
           >
             Blog <span className="text-gray-500 italic"></span>
           </motion.h1>
+          <motion.p 
+             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+             className="text-gray-500 mt-6 text-lg max-w-2xl mx-auto"
+          >
+            
+          </motion.p>
         </header>
 
-        {/* GRID DE ARTÍCULOS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-          {posts.map((post, index) => (
+        {/* --- NUEVO: BARRA DE RESULTADOS DE BÚSQUEDA --- */}
+        <AnimatePresence>
+          {searchTerm && (
             <motion.div 
-              key={post.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: (index % 3) * 0.1 }}
-              className="group relative"
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              className="mb-12"
             >
-              <Link to={`/blog/${post.id}`} className="block">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-xl mb-6 border border-white/5 bg-[#111]">
-                  <img 
-                    src={post.image} 
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 opacity-40 group-hover:opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#020202]/80 via-transparent to-transparent" />
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-[9px] font-black tracking-[0.2em] text-qualtop-orange uppercase">
-                    <span>{post.category}</span>
-                    <span className="text-gray-800">•</span>
-                    <span className="text-gray-500">{post.date}</span>
+              <div className="flex flex-col md:flex-row items-center justify-between bg-[#0a0a0a] border border-white/10 p-4 md:p-6 rounded-xl gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-qualtop-orange/10 rounded-lg text-qualtop-orange">
+                    <Search size={20} />
                   </div>
-                  
-                  <h2 className="text-2xl font-bold text-white group-hover:text-qualtop-orange transition-colors duration-300 leading-tight">
-                    {post.title}
-                  </h2>
-                  
-                  <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
-                    {post.excerpt}
+                  <p className="text-white text-lg">
+                    Resultados para: <span className="text-qualtop-orange font-bold">"{searchTerm}"</span>
                   </p>
-
-                  <div className="pt-4 flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest group-hover:gap-4 transition-all duration-300">
-                    Leer Más <ArrowUpRight size={14} className="text-qualtop-orange" />
-                  </div>
+                  <span className="text-gray-500 text-sm">({filteredPosts.length} artículos)</span>
                 </div>
-              </Link>
+                <button 
+                  onClick={clearSearch}
+                  className="flex items-center gap-2 text-sm text-gray-400 hover:text-white px-4 py-2 hover:bg-white/5 rounded-lg transition-all"
+                >
+                  <X size={16} /> Limpiar filtro
+                </button>
+              </div>
             </motion.div>
-          ))}
-        </div>
+          )}
+        </AnimatePresence>
 
-        {/* PAGINACIÓN ESTILO PRO */}
-        <div className="mt-32 flex justify-center items-center gap-4">
-          <div className="flex items-center gap-2">
-            {[1, 2, 3].map((num) => (
-              <button 
-                key={num}
-                className={`w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
-                  num === 1 ? 'bg-qualtop-orange text-white shadow-lg shadow-qualtop-orange/20' : 'text-gray-500 hover:text-white hover:bg-white/5'
-                }`}
+        {/* GRID DE ARTÍCULOS (CON LÓGICA VACÍA) */}
+        {filteredPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            {filteredPosts.map((post, index) => (
+              <motion.div 
+                key={post.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: (index % 3) * 0.1 }}
+                className="group relative"
               >
-                {num}
-              </button>
+                <Link to={`/blog/${post.id}`} className="block">
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-xl mb-6 border border-white/5 bg-[#111]">
+                    <img 
+                      src={post.image} 
+                      alt={post.title}
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 opacity-40 group-hover:opacity-80"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020202]/80 via-transparent to-transparent" />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-[9px] font-black tracking-[0.2em] text-qualtop-orange uppercase">
+                      <span>{post.category}</span>
+                      <span className="text-gray-800">•</span>
+                      <span className="text-gray-500">{post.date}</span>
+                    </div>
+                    
+                    <h2 className="text-2xl font-bold text-white group-hover:text-qualtop-orange transition-colors duration-300 leading-tight">
+                      {post.title}
+                    </h2>
+                    
+                    <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
+                      {post.excerpt}
+                    </p>
+
+                    <div className="pt-4 flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest group-hover:gap-4 transition-all duration-300">
+                      Leer Más <ArrowUpRight size={14} className="text-qualtop-orange" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
-            <span className="text-gray-700 px-2">...</span>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5">
-              9
+          </div>
+        ) : (
+          /* --- NUEVO: ESTADO SIN RESULTADOS (Minimalista) --- */
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="py-20 text-center border border-white/5 rounded-2xl bg-[#050505] border-dashed"
+          >
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-600">
+              <Search size={32} />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">No encontramos nada para "{searchTerm}"</h3>
+            <p className="text-gray-500 mb-8 max-w-md mx-auto">
+              Intenta buscar por categorías como "Insurtech", "Cloud" o "Estrategia".
+            </p>
+            <button onClick={clearSearch} className="px-8 py-3 bg-qualtop-orange text-white font-bold rounded hover:bg-orange-600 transition-colors tracking-widest text-xs uppercase">
+              Ver todos los artículos
+            </button>
+          </motion.div>
+        )}
+
+        {/* PAGINACIÓN ESTILO PRO (Solo se muestra si NO hay búsqueda activa) */}
+        {!searchTerm && (
+          <div className="mt-32 flex justify-center items-center gap-4">
+            <div className="flex items-center gap-2">
+              {[1, 2, 3].map((num) => (
+                <button 
+                  key={num}
+                  className={`w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                    num === 1 ? 'bg-qualtop-orange text-white shadow-lg shadow-qualtop-orange/20' : 'text-gray-500 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
+              <span className="text-gray-700 px-2">...</span>
+              <button className="w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5">
+                9
+              </button>
+            </div>
+            <button className="flex items-center gap-2 text-gray-500 hover:text-white text-xs font-bold ml-4 transition-colors">
+              Siguiente <ChevronRight size={16} />
             </button>
           </div>
-          <button className="flex items-center gap-2 text-gray-500 hover:text-white text-xs font-bold ml-4 transition-colors">
-            Siguiente <ChevronRight size={16} />
-          </button>
-        </div>
+        )}
 
       </div>
     </div>

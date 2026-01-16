@@ -5,37 +5,53 @@ import {
   Check, Mail, Linkedin, Twitter, Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 export default function BlogPost() {
   const navigate = useNavigate();
   const contentRef = useRef(null);
 
-  // --- 1. LÓGICA DE COMPARTIR NATIVO ---
+  // --- 1. LÓGICA INTELIGENTE DE COMPARTIR ---
   const [copied, setCopied] = useState(false);
 
   const handleSharePost = async () => {
-    const url =  encodeURIComponent(window.location.href);
+    // ERROR CORREGIDO: Usamos la URL limpia (SIN encodeURIComponent)
+    // Esto soluciona el link raro en el celular.
+    const url = window.location.href; 
     const title = "La Nueva Era de la Gestión de Siniestros";
     
-    if (navigator.share) {
+    // DETECCIÓN RÁPIDA: ¿Es celular/tablet?
+    // (Verificamos si es iOS/Android o si tiene pantalla táctil pequeña)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
+
+    // CASO 1: Es MÓVIL y soporta compartir nativo -> Abre menú del cel
+    if (isMobile && navigator.share) {
       try {
-        await navigator.share({ title, url });
-      } catch (error) { console.log('Cancelado'); }
-    } else {
+        await navigator.share({
+            title: title,
+            url: url // URL limpia
+        });
+      } catch (error) { 
+        console.log('Cancelado por usuario'); 
+      }
+    } 
+    // CASO 2: Es DESKTOP (Web) -> Solo copia y muestra alerta
+    else {
       try {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
+        await navigator.clipboard.writeText(url); // URL limpia
+        setCopied(true); // ¡Mostramos la alerta visual!
         setTimeout(() => setCopied(false), 2500);
-      } catch (err) { console.error(err); }
+      } catch (err) { 
+        console.error('Error al copiar', err); 
+      }
     }
   };
 
   // --- 2. LÓGICA REDES SOCIALES ---
   const shareToSocial = (platform) => {
-    // NOTA: En localhost esto abrirá una ventana vacía en LinkedIn
-    // porque LinkedIn no puede leer "localhost". 
-    // En cuanto subas tu web a Vercel/Netlify, funcionará automático.
-    const url = encodeURIComponent(window.location.href);
+    // Aquí SÍ codificamos porque la URL va dentro de otra URL
+    // NOTA: Cuando subas a Vercel, cambia "google.com" por window.location.href
+    const url = encodeURIComponent(window.location.href); 
     const text = encodeURIComponent("Lectura recomendada sobre Gestión de Siniestros e IA:");
     
     let shareUrl = "";
@@ -64,6 +80,22 @@ export default function BlogPost() {
   return (
     <div className="bg-[#080808] text-gray-300 font-sans selection:bg-qualtop-orange selection:text-white min-h-screen">
       
+      <Helmet>
+        {/* Título que sale en la pestaña del navegador y en Google */}
+        <title>La Nueva Era de la Gestión de Siniestros | Blog Qualtop</title>
+        
+        {/* Descripción corta para Google (el texto gris debajo del link) */}
+        <meta name="description" content="Descubre cómo la IA y el enfoque omnicanal están revolucionando la gestión de siniestros. Análisis estratégico de Qualtop sobre Insurtech." />
+        
+        {/* --- Open Graph: Cómo se ve al compartir en WhatsApp/LinkedIn --- */}
+        <meta property="og:title" content="La Nueva Era de la Gestión de Siniestros | Qualtop" />
+        <meta property="og:description" content="Análisis sobre IA, Omnicanalidad y eficiencia operativa en seguros." />
+        <meta property="og:type" content="article" />
+        {/* Si tienes una imagen de portada para el blog, pon su URL aquí */}
+        {/* <meta property="og:image" content="https://tu-dominio.com/img/blog-cover.jpg" /> */}
+      </Helmet>
+
+
       {/* --- HERO HEADER --- */}
       <header className="relative pt-32 pb-20 px-6 bg-[#0a0a0a] border-b border-white/5">
          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -109,22 +141,15 @@ export default function BlogPost() {
               className="
                 prose prose-lg prose-invert max-w-none
                 text-gray-300
-                /* Estilos de Títulos */
                 prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight
                 prose-h2:text-2xl md:prose-h2:text-3xl prose-h2:mt-20 prose-h2:mb-10 prose-h2:border-l-4 prose-h2:border-qualtop-orange prose-h2:pl-6
-                
-                /* Estilos de Párrafos (Súper espaciados y legibles) */
                 prose-p:leading-9 prose-p:mb-10 prose-p:text-lg prose-p:font-light
-                
-                /* Listas */
                 prose-strong:text-white prose-strong:font-bold
                 prose-ul:list-disc prose-ul:pl-6 prose-li:marker:text-qualtop-orange prose-li:mb-6 prose-li:leading-8
-                
-                /* Citas */
                 prose-blockquote:bg-[#111] prose-blockquote:border-l-qualtop-orange prose-blockquote:p-10 prose-blockquote:rounded-r-2xl prose-blockquote:text-white prose-blockquote:not-italic prose-blockquote:text-xl prose-blockquote:leading-normal prose-blockquote:my-16 prose-blockquote:shadow-lg
               "
             >
-                {/* --- CONTENIDO EDITORIAL --- */}
+                {/* --- CONTENIDO --- */}
                 
                 <p className="text-xl md:text-2xl text-white font-light leading-relaxed mb-12">
                     En un entorno de negocios cada vez más competitivo y digitalizado, la eficiencia en la gestión de siniestros es un punto crucial para la satisfacción del cliente y la optimización de costos.
@@ -134,13 +159,10 @@ export default function BlogPost() {
                     La implementación de un proceso de <strong>Notificación de Siniestros (FNOL) omnicanal</strong> se presenta como una herramienta estratégica que no solo mejora la experiencia del cliente, sino que también refuerza la sostenibilidad y la estabilidad financiera de las organizaciones.
                 </p>
 
-                {/* SECCIÓN 1 */}
                 <h2>El Enfoque Omnicanal en la Gestión de Siniestros</h2>
-                
                 <p>
                     La estrategia omnicanal permite a las aseguradoras interactuar con sus clientes de múltiples maneras, a través de diferentes plataformas y dispositivos. Al integrar colas y eventos que capturan cada interacción del cliente, las compañías pueden asegurar que cada notificación de siniestro es tratada con rapidez y precisión.
                 </p>
-
                 <ul>
                     <li>
                         <strong>Colas y Eventos:</strong> La utilización de colas para gestionar las interacciones garantiza que cada cliente reciba atención oportuna, independientemente del canal que utilice. Las alertas y eventos permiten priorizar los casos más urgentes.
@@ -150,13 +172,10 @@ export default function BlogPost() {
                     </li>
                 </ul>
 
-                {/* SECCIÓN 2 */}
                 <h2>Inteligencia Artificial en el Triage y Documentación</h2>
-                
                 <p>
                     La inteligencia artificial (IA) se convierte en un aliado crucial para el triage de los siniestros. Al implementar algoritmos de tratamiento, es posible clasificar los casos automáticamente, facilitando la documentación conforme a reglas de auto-aprobación.
                 </p>
-
                 <ul>
                     <li>
                         <strong>Automatización de Triage:</strong> La IA permite reducir significativamente el tiempo de evaluación inicial, permitiendo que los casos menos complejos sean aprobados sin intervención manual.
@@ -166,13 +185,10 @@ export default function BlogPost() {
                     </li>
                 </ul>
 
-                {/* SECCIÓN 3 */}
                 <h2>Telemetría y Auditoría End-to-End</h2>
-                
                 <p>
                     Implementar una solución con telemetría asegura una visibilidad completa en tiempo real a lo largo del ciclo de vida del siniestro. Esto no solo permite un seguimiento efectivo de los procesos, sino que también puede señalar áreas de mejora dentro de los mismos.
                 </p>
-
                 <ul>
                     <li>
                         <strong>Auditoría End-to-End:</strong> La capacidad de auditar cada paso del proceso garantiza la transparencia y facilita la identificación de cuellos de botella, todo ello alineado con los estándares regulatorios.
@@ -182,13 +198,10 @@ export default function BlogPost() {
                     </li>
                 </ul>
 
-                {/* SECCIÓN 4 */}
                 <h2>Pruebas Mensuales de Resiliencia y Mejora de Flujo</h2>
-                
                 <p>
                     Por último, es esencial la implementación de pruebas mensuales de resiliencia en los procesos. Esto asegura que, incluso en situaciones imprevistas, la organización puede mantener su efectividad operativa. La mejora continua del flujo de requisitos no solo resalta la capacidad de la gestión de siniestros para adaptarse, sino que además optimiza la experiencia del cliente.
                 </p>
-
                 <ul>
                     <li>
                         <strong>Resiliencia Operativa:</strong> Realizar simulaciones y pruebas permite al equipo identificar y abordar posibles fallos en el sistema antes de que se materialicen en problemas reales.
@@ -198,9 +211,7 @@ export default function BlogPost() {
                     </li>
                 </ul>
 
-                {/* CONCLUSIÓN */}
                 <h2>Reflexión Final</h2>
-                
                 <p>
                     La modernización en la gestión de siniestros no es una opción, sino una necesidad. La combinación de un enfoque omnicanal, IA en triage, telemetría, y pruebas de resiliencia brinda a las organizaciones, no solo la capacidad de mejorar su eficiencia y rentabilidad, sino también de elevar la experiencia del cliente a nuevos estándares.
                 </p>
@@ -211,9 +222,7 @@ export default function BlogPost() {
 
                 {/* CALL TO ACTION BOX */}
                 <div className="bg-gradient-to-br from-qualtop-orange/10 to-transparent border border-qualtop-orange/30 p-10 rounded-3xl mt-16 mb-8 relative overflow-hidden shadow-2xl">
-                    {/* Efecto de luz de fondo */}
                     <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-qualtop-orange/20 blur-3xl rounded-full pointer-events-none"></div>
-                    
                     <h4 className="text-qualtop-orange font-bold uppercase tracking-widest text-xs mb-4">¿Siguiente Paso?</h4>
                     <p className="text-white font-medium text-xl m-0 relative z-10 leading-relaxed">
                         Si deseas profundizar en un análisis adaptado a tu organización y tus retos específicos, considera una conversación estratégica donde exploraremos juntos cómo implementar estas transformaciones en tu modelo de negocio.
@@ -295,7 +304,7 @@ export default function BlogPost() {
 
       </div>
 
-      {/* TOAST NOTIFICATION */}
+      {/* TOAST NOTIFICATION (Solo para Desktop/Fallback) */}
       <AnimatePresence>
         {copied && (
           <motion.div

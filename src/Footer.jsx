@@ -44,19 +44,7 @@ export default function Footer() {
               Innovación, agilidad y modernización de producción de software.
             </p>
             
-            {/* Newsletter integrado para darle el toque innovador */}
-            <div className="pt-4 max-w-sm">
-                <div className="relative">
-                    <input 
-                        type="email" 
-                        placeholder="info@qualtop.com" 
-                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-4 pr-12 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-qualtop-orange transition-all"
-                    />
-                    <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-qualtop-orange text-white rounded-md">
-                        <ArrowRight size={16} />
-                    </button>
-                </div>
-            </div>
+
           </div>
 
           {/* COLUMNA QUALTOP (2/12) */}

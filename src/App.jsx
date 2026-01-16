@@ -2,6 +2,7 @@ import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import { Helmet } from 'react-helmet-async'; // Importamos Helmet para SEO
 
 // --- COMPONENTES ---
 import Navbar from './Navbar';
@@ -40,10 +41,8 @@ const ScrollToHashElement = () => {
     // Función centralizada para hacer el scroll
     const handleScroll = () => {
       if (hash) {
-        // Quitamos el # y buscamos el ID en el documento
         const element = document.getElementById(hash.replace('#', ''));
         if (element) {
-          // Timeout ligero para asegurar que la sección esté renderizada
           setTimeout(() => {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
@@ -51,22 +50,18 @@ const ScrollToHashElement = () => {
       }
     };
 
-    // 1. Ejecutar al cargar o cambiar ruta/hash (Comportamiento normal)
+    // 1. Ejecutar al cargar
     handleScroll();
 
-    // 2. Escuchar clics manuales (SOLUCIÓN AL BUG DE "YA ESTOY AQUÍ")
-    // Esto detecta si haces clic en un link que lleva a la misma página donde ya estás
+    // 2. Escuchar clics manuales (Solución al bug de "ya estoy aquí")
     const handleClick = (e) => {
       const target = e.target.closest('a');
-      // Verificamos si es un link, si tiene hash (#), y si es la misma página actual
       if (target && target.hash && target.origin === window.location.origin && target.pathname === window.location.pathname) {
-        setTimeout(handleScroll, 100); // Forzamos el scroll nuevamente
+        setTimeout(handleScroll, 100); 
       }
     };
 
     window.addEventListener('click', handleClick);
-    
-    // Limpieza del evento al desmontar
     return () => window.removeEventListener('click', handleClick);
 
   }, [hash, pathname]);
@@ -79,18 +74,31 @@ const ScrollToHashElement = () => {
    ========================================= */
 const Home = () => (
   <>
-    {/* 1. HERO SECTION (Pantalla completa) */}
+    {/* 1. HERO SECTION (Optimizado para rendimiento) */}
     <section className="relative h-screen w-full overflow-hidden">
       
       {/* Fondo 3D (Neural Network) */}
       <div className="absolute inset-0 z-0">
-        <Canvas camera={{ position: [0, 6, 14], fov: 50 }} dpr={[1, 1.5]}>
+        <Canvas 
+          camera={{ position: [0, 6, 14], fov: 50 }} 
+          // OPTIMIZACIÓN CRÍTICA: dpr={[1, 1]} evita que renderice en 4K en pantallas retina, eliminando el lag
+          dpr={[1, 1]} 
+          performance={{ min: 0.5 }}
+        >
           <color attach="background" args={['#000000']} />
           <fog attach="fog" args={['#000000', 10, 50]} />
+          
           <NeuralNetwork />
+          
           <Suspense fallback={null}>
-            <EffectComposer disableNormalPass>
-              <Bloom luminanceThreshold={0.15} mipmapBlur intensity={1.5} radius={0.6} />
+            {/* OPTIMIZACIÓN: multisampling={0} quita carga pesada a la GPU */}
+            <EffectComposer disableNormalPass multisampling={0}>
+              <Bloom 
+                luminanceThreshold={0.2} 
+                mipmapBlur 
+                intensity={1.0} 
+                radius={0.4} 
+              />
               <Vignette offset={0.1} darkness={1.1} eskil={false} />
             </EffectComposer>
           </Suspense>
@@ -123,7 +131,7 @@ const Home = () => (
       <ServicesSection />
       <ProductsSection />
       <BenefitsSection />
-      <PartnersSection />  
+      <PartnersSection /> 
       <CTASection />
       <ContactSection />
     </div>
@@ -136,8 +144,14 @@ const Home = () => (
 export default function App() {
   return (
     <Router>
+      {/* --- SEO DEFAULT (Para páginas que no tengan Helmet propio) --- */}
+      <Helmet>
+        <title>Qualtop</title>
+        <meta name="description" content="Qualtop ofrece soluciones de desarrollo de software, inteligencia artificial y modernización tecnológica para empresas líderes." />
+        <meta name="theme-color" content="#FF4D00" />
+      </Helmet>
+
       <ScrollToTop />
-      {/* Agregamos el ayudante de scroll corregido aquí */}
       <ScrollToHashElement />
       
       <main className="relative w-full min-h-screen bg-[#000000] selection:bg-qualtop-orange selection:text-white font-sans text-white">      
