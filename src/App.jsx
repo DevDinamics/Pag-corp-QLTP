@@ -148,7 +148,7 @@ export default function App() {
       <Helmet>
         <title>Qualtop</title>
         <meta name="description" content="Qualtop ofrece soluciones de desarrollo de software, inteligencia artificial y modernización tecnológica para empresas líderes." />
-        <meta name="theme-color" content="#FF4D00" />
+        <meta name="theme-color" content="#000000" />
       </Helmet>
 
       <ScrollToTop />
