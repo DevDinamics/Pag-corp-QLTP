@@ -1,320 +1,334 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { PortableText } from '@portabletext/react';
 import {
   Calendar, ArrowLeft, Share2,
-  Check, Mail, Linkedin, Twitter, Loader2
+  Check, Mail, Linkedin, Twitter, Loader2, ExternalLink
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+
+// CONEXIÓN CON SANITY
+import { client, urlFor } from '../../client'; 
+
+// --- 1. ESTILOS "PRO" PARA EL CONTENIDO (PortableText) ---
+const ptComponents = {
+  block: {
+    // H2: Borde naranja, espaciado amplio, tipografía clara
+    h2: ({children}) => (
+      <h2 className="text-2xl md:text-3xl font-bold text-white mt-16 mb-8 border-l-4 border-qualtop-orange pl-6 leading-tight">
+        {children}
+      </h2>
+    ),
+    // H3: Subtítulos
+    h3: ({children}) => (
+      <h3 className="text-xl font-bold text-white mt-10 mb-4">
+        {children}
+      </h3>
+    ),
+    // Párrafos: Color gris claro para no cansar la vista (UX), altura de línea cómoda
+    normal: ({children}) => (
+      <p className="text-lg text-gray-300 leading-9 mb-8 font-light">
+        {children}
+      </p>
+    ),
+    // Citas: Caja destacada oscura
+    blockquote: ({children}) => (
+      <blockquote className="bg-[#111] border-l-4 border-qualtop-orange p-8 my-12 rounded-r-xl shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+           <span className="text-6xl text-qualtop-orange font-serif">"</span>
+        </div>
+        <p className="text-xl text-white italic m-0 leading-relaxed font-medium relative z-10">
+          {children}
+        </p>
+      </blockquote>
+    ),
+  },
+  list: {
+    bullet: ({children}) => <ul className="list-disc pl-6 space-y-4 mb-10 text-gray-300 marker:text-qualtop-orange text-lg leading-8">{children}</ul>,
+    number: ({children}) => <ol className="list-decimal pl-6 space-y-4 mb-10 text-gray-300 marker:text-qualtop-orange text-lg leading-8">{children}</ol>,
+  },
+  // --- NUEVO: Estilos para Enlaces dentro del texto ---
+  marks: {
+    link: ({children, value}) => {
+      const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
+      return (
+        <a 
+          href={value.href} 
+          rel={rel} 
+          target="_blank"
+          className="text-qualtop-orange hover:text-white underline decoration-qualtop-orange/50 underline-offset-4 hover:decoration-white transition-all inline-flex items-center gap-1 font-medium"
+        >
+          {children} <ExternalLink size={14} className="opacity-50" />
+        </a>
+      );
+    }
+  },
+  types: {
+    image: ({value}) => {
+      if (!value?.asset?._ref) { return null; }
+      return (
+        <figure className="my-12">
+          <div className="border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+            <img
+              src={urlFor(value).width(1200).url()}
+              alt={value.alt || 'Imagen del blog'}
+              className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
+            />
+          </div>
+          {value.caption && (
+            <figcaption className="text-center text-gray-500 text-sm mt-3 italic border-b border-white/5 pb-2 inline-block px-4 mx-auto">
+              {value.caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    }
+  }
+};
 
 export default function BlogPost() {
+  const { slug } = useParams();
   const navigate = useNavigate();
   const contentRef = useRef(null);
-
-  // --- 1. LÓGICA INTELIGENTE DE COMPARTIR ---
+  
+  // ESTADOS
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [subStatus, setSubStatus] = useState('idle');
 
+  // --- CARGA DE DATOS ---
+  useEffect(() => {
+    const query = `*[_type == "post" && slug.current == $slug][0]{
+      title,
+      mainImage,
+      publishedAt,
+      body,
+      "authorName": author->name,
+      "authorImage": author->image, 
+      "categories": categories[]->title
+    }`;
+
+    setLoading(true);
+    client.fetch(query, { slug })
+      .then((data) => {
+        setPost(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error cargando post:", err);
+        setLoading(false);
+      });
+  }, [slug]);
+
+  // Scroll al inicio al cargar
+  useEffect(() => {
+    if (!loading && post) window.scrollTo(0, 0);
+  }, [loading, post]);
+
+  // --- FUNCIONES DE COMPARTIR ---
   const handleSharePost = async () => {
-    // ERROR CORREGIDO: Usamos la URL limpia (SIN encodeURIComponent)
-    // Esto soluciona el link raro en el celular.
     const url = window.location.href; 
-    const title = "La Nueva Era de la Gestión de Siniestros";
-    
-    // DETECCIÓN RÁPIDA: ¿Es celular/tablet?
-    // (Verificamos si es iOS/Android o si tiene pantalla táctil pequeña)
+    const title = post?.title || "Blog Qualtop";
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
 
-    // CASO 1: Es MÓVIL y soporta compartir nativo -> Abre menú del cel
     if (isMobile && navigator.share) {
+      try { await navigator.share({ title, url }); } catch (error) { console.log('Cancelado'); }
+    } else {
       try {
-        await navigator.share({
-            title: title,
-            url: url // URL limpia
-        });
-      } catch (error) { 
-        console.log('Cancelado por usuario'); 
-      }
-    } 
-    // CASO 2: Es DESKTOP (Web) -> Solo copia y muestra alerta
-    else {
-      try {
-        await navigator.clipboard.writeText(url); // URL limpia
-        setCopied(true); // ¡Mostramos la alerta visual!
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
         setTimeout(() => setCopied(false), 2500);
-      } catch (err) { 
-        console.error('Error al copiar', err); 
-      }
+      } catch (err) { console.error('Error', err); }
     }
   };
 
-  // --- 2. LÓGICA REDES SOCIALES ---
   const shareToSocial = (platform) => {
-    // Aquí SÍ codificamos porque la URL va dentro de otra URL
-    // NOTA: Cuando subas a Vercel, cambia "google.com" por window.location.href
     const url = encodeURIComponent(window.location.href); 
-    const text = encodeURIComponent("Lectura recomendada sobre Gestión de Siniestros e IA:");
-    
+    const text = encodeURIComponent(`Lectura recomendada: ${post?.title}`);
     let shareUrl = "";
-
-    if (platform === 'linkedin') {
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-    } else if (platform === 'twitter') {
-        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
-    }
-
+    if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+    if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
     window.open(shareUrl, '_blank', 'width=600,height=600');
   };
 
-  // --- 3. BOTÓN SUSCRIBIRME ---
-  const [subStatus, setSubStatus] = useState('idle');
   const handleSubscribe = (e) => {
     e.preventDefault();
-    if (subStatus !== 'idle') return;
     setSubStatus('loading');
-    setTimeout(() => {
-      setSubStatus('success');
-      setTimeout(() => setSubStatus('idle'), 3000);
-    }, 1500);
+    setTimeout(() => { setSubStatus('success'); setTimeout(() => setSubStatus('idle'), 3000); }, 1500);
   };
+
+  // --- RENDERIZADO ---
+  if (loading) {
+    return (
+      <div className="bg-[#080808] min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-qualtop-orange" size={40} />
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="bg-[#080808] min-h-screen flex flex-col items-center justify-center text-white">
+        <h2 className="text-2xl font-bold mb-4">Artículo no encontrado</h2>
+        <button onClick={() => navigate('/blog')} className="text-qualtop-orange hover:underline">Volver al Blog</button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#080808] text-gray-300 font-sans selection:bg-qualtop-orange selection:text-white min-h-screen">
       
       <Helmet>
-        {/* Título que sale en la pestaña del navegador y en Google */}
-        <title>La Nueva Era de la Gestión de Siniestros | Blog Qualtop</title>
-        
-        {/* Descripción corta para Google (el texto gris debajo del link) */}
-        <meta name="description" content="Descubre cómo la IA y el enfoque omnicanal están revolucionando la gestión de siniestros. Análisis estratégico de Qualtop sobre Insurtech." />
-        
-        {/* --- Open Graph: Cómo se ve al compartir en WhatsApp/LinkedIn --- */}
-        <meta property="og:title" content="La Nueva Era de la Gestión de Siniestros | Qualtop" />
-        <meta property="og:description" content="Análisis sobre IA, Omnicanalidad y eficiencia operativa en seguros." />
-        <meta property="og:type" content="article" />
-        {/* Si tienes una imagen de portada para el blog, pon su URL aquí */}
-        {/* <meta property="og:image" content="https://tu-dominio.com/img/blog-cover.jpg" /> */}
+        <title>{post.title} | Blog Qualtop</title>
+        <meta name="description" content={`Lee sobre ${post.title} en el blog de Qualtop.`} />
+        <meta property="og:title" content={post.title} />
+        {post.mainImage && <meta property="og:image" content={urlFor(post.mainImage).width(800).url()} />}
       </Helmet>
 
-
       {/* --- HERO HEADER --- */}
-      <header className="relative pt-32 pb-20 px-6 bg-[#0a0a0a] border-b border-white/5">
-         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
-            <div className="lg:col-span-9">
-                <div className="flex flex-wrap items-center gap-4 mb-6">
-                    <button onClick={() => navigate('/blog')} className="flex items-center gap-2 text-gray-500 hover:text-qualtop-orange transition-colors text-xs font-bold uppercase tracking-widest group">
-                        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                        Blog
+      <header className="relative pt-32 pb-20 px-6 bg-[#0a0a0a] border-b border-white/5 overflow-hidden">
+         {/* Fondo sutil (Glow) */}
+         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-qualtop-orange/5 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+
+         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10">
+            <div className="lg:col-span-10">
+                <div className="flex flex-wrap items-center gap-4 mb-8">
+                    <button onClick={() => navigate('/blog')} className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group">
+                        <ArrowLeft size={14} className="text-qualtop-orange group-hover:-translate-x-1 transition-transform" />
+                        Volver al Blog
                     </button>
                 </div>
 
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight mb-8">
-                    La Nueva Era de la <br />
-                    <span className="text-qualtop-orange">Gestión de Siniestros.</span>
-                </h1>
+                <motion.h1 
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  className="text-3xl md:text-5xl lg:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-8"
+                >
+                    {post.title}
+                </motion.h1>
 
-                <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 border-t border-white/5 pt-6">
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                  className="flex flex-wrap items-center gap-6 text-sm text-gray-400 border-t border-white/5 pt-8"
+                >
+                    {/* AVATAR */}
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center font-bold text-white text-xs">
-                            QT
+                        <div className="w-12 h-12 rounded-full border border-white/10 overflow-hidden bg-white/5">
+                            {post.authorImage ? (
+                                <img 
+                                    src={urlFor(post.authorImage).width(100).height(100).url()} 
+                                    alt={post.authorName}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center font-bold text-white text-xs bg-gradient-to-br from-gray-800 to-black">QT</div>
+                            )}
                         </div>
                         <div>
-                            <p className="text-white font-bold leading-none">Redacción Qualtop</p>
-                            <p className="text-xs text-gray-500 mt-1">Análisis Técnico</p>
+                            <p className="text-white font-bold leading-none text-base">{post.authorName || "Equipo Qualtop"}</p>
+                            <p className="text-xs text-qualtop-orange mt-1 font-medium tracking-wide uppercase">{post.categories ? post.categories[0] : "Tecnología"}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-qualtop-orange"/>
-                        <span>12 Enero, 2026</span>
+                    
+                    {/* FECHA */}
+                    <div className="flex items-center gap-2 pl-4 border-l border-white/10">
+                        <Calendar size={18} className="text-gray-500"/>
+                        <span>{new Date(post.publishedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     </div>
-                </div>
+                </motion.div>
             </div>
          </div>
       </header>
 
-      {/* --- LAYOUT PRINCIPAL --- */}
-      <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-12 gap-16">
+      {/* --- BODY --- */}
+      <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
         
-        {/* COLUMNA IZQUIERDA: ARTÍCULO */}
-        <main className="lg:col-span-8">
-            <div
-              ref={contentRef}
-              className="
-                prose prose-lg prose-invert max-w-none
-                text-gray-300
-                prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight
-                prose-h2:text-2xl md:prose-h2:text-3xl prose-h2:mt-20 prose-h2:mb-10 prose-h2:border-l-4 prose-h2:border-qualtop-orange prose-h2:pl-6
-                prose-p:leading-9 prose-p:mb-10 prose-p:text-lg prose-p:font-light
-                prose-strong:text-white prose-strong:font-bold
-                prose-ul:list-disc prose-ul:pl-6 prose-li:marker:text-qualtop-orange prose-li:mb-6 prose-li:leading-8
-                prose-blockquote:bg-[#111] prose-blockquote:border-l-qualtop-orange prose-blockquote:p-10 prose-blockquote:rounded-r-2xl prose-blockquote:text-white prose-blockquote:not-italic prose-blockquote:text-xl prose-blockquote:leading-normal prose-blockquote:my-16 prose-blockquote:shadow-lg
-              "
-            >
-                {/* --- CONTENIDO --- */}
-                
-                <p className="text-xl md:text-2xl text-white font-light leading-relaxed mb-12">
-                    En un entorno de negocios cada vez más competitivo y digitalizado, la eficiencia en la gestión de siniestros es un punto crucial para la satisfacción del cliente y la optimización de costos.
-                </p>
-
-                <p>
-                    La implementación de un proceso de <strong>Notificación de Siniestros (FNOL) omnicanal</strong> se presenta como una herramienta estratégica que no solo mejora la experiencia del cliente, sino que también refuerza la sostenibilidad y la estabilidad financiera de las organizaciones.
-                </p>
-
-                <h2>El Enfoque Omnicanal en la Gestión de Siniestros</h2>
-                <p>
-                    La estrategia omnicanal permite a las aseguradoras interactuar con sus clientes de múltiples maneras, a través de diferentes plataformas y dispositivos. Al integrar colas y eventos que capturan cada interacción del cliente, las compañías pueden asegurar que cada notificación de siniestro es tratada con rapidez y precisión.
-                </p>
-                <ul>
-                    <li>
-                        <strong>Colas y Eventos:</strong> La utilización de colas para gestionar las interacciones garantiza que cada cliente reciba atención oportuna, independientemente del canal que utilice. Las alertas y eventos permiten priorizar los casos más urgentes.
-                    </li>
-                    <li>
-                        <strong>Procesamiento Multinube:</strong> Adopción de soluciones multinube que aseguran la escalabilidad y flexibilidad requeridas para manejar picos en la demanda, permitiendo que los sistemas se adapten a diversas circunstancias contingentes.
-                    </li>
-                </ul>
-
-                <h2>Inteligencia Artificial en el Triage y Documentación</h2>
-                <p>
-                    La inteligencia artificial (IA) se convierte en un aliado crucial para el triage de los siniestros. Al implementar algoritmos de tratamiento, es posible clasificar los casos automáticamente, facilitando la documentación conforme a reglas de auto-aprobación.
-                </p>
-                <ul>
-                    <li>
-                        <strong>Automatización de Triage:</strong> La IA permite reducir significativamente el tiempo de evaluación inicial, permitiendo que los casos menos complejos sean aprobados sin intervención manual.
-                    </li>
-                    <li>
-                        <strong>Reglas de Auto-aprobación:</strong> Estas reglas configuran un sistema que disminuye la carga operativa, asegurando que solo los casos que realmente requieren revisión manual sean sometidos a procesos más largos.
-                    </li>
-                </ul>
-
-                <h2>Telemetría y Auditoría End-to-End</h2>
-                <p>
-                    Implementar una solución con telemetría asegura una visibilidad completa en tiempo real a lo largo del ciclo de vida del siniestro. Esto no solo permite un seguimiento efectivo de los procesos, sino que también puede señalar áreas de mejora dentro de los mismos.
-                </p>
-                <ul>
-                    <li>
-                        <strong>Auditoría End-to-End:</strong> La capacidad de auditar cada paso del proceso garantiza la transparencia y facilita la identificación de cuellos de botella, todo ello alineado con los estándares regulatorios.
-                    </li>
-                    <li>
-                        <strong>KPIs Clave:</strong> Establecer KPIs como el tiempo hasta la oferta, la tasa de auto-aprobación, el tiempo hasta el pago, así como indicadores de satisfacción del cliente como el CSAT y el NPS, posiciona a la organización para realizar mejoras continuas en su oferta de servicios.
-                    </li>
-                </ul>
-
-                <h2>Pruebas Mensuales de Resiliencia y Mejora de Flujo</h2>
-                <p>
-                    Por último, es esencial la implementación de pruebas mensuales de resiliencia en los procesos. Esto asegura que, incluso en situaciones imprevistas, la organización puede mantener su efectividad operativa. La mejora continua del flujo de requisitos no solo resalta la capacidad de la gestión de siniestros para adaptarse, sino que además optimiza la experiencia del cliente.
-                </p>
-                <ul>
-                    <li>
-                        <strong>Resiliencia Operativa:</strong> Realizar simulaciones y pruebas permite al equipo identificar y abordar posibles fallos en el sistema antes de que se materialicen en problemas reales.
-                    </li>
-                    <li>
-                        <strong>Flujo de Trabajo Mejorado:</strong> Cada evaluación y ajuste en el flujo es una oportunidad para maximizar la satisfacción del cliente y optimizar los costos operativos.
-                    </li>
-                </ul>
-
-                <h2>Reflexión Final</h2>
-                <p>
-                    La modernización en la gestión de siniestros no es una opción, sino una necesidad. La combinación de un enfoque omnicanal, IA en triage, telemetría, y pruebas de resiliencia brinda a las organizaciones, no solo la capacidad de mejorar su eficiencia y rentabilidad, sino también de elevar la experiencia del cliente a nuevos estándares.
-                </p>
-
-                <blockquote>
-                    "Esto representa no solo un cambio en la operación, sino una transformación cultural hacia la excelencia en cada interacción."
-                </blockquote>
-
-                {/* CALL TO ACTION BOX */}
-                <div className="bg-gradient-to-br from-qualtop-orange/10 to-transparent border border-qualtop-orange/30 p-10 rounded-3xl mt-16 mb-8 relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-qualtop-orange/20 blur-3xl rounded-full pointer-events-none"></div>
-                    <h4 className="text-qualtop-orange font-bold uppercase tracking-widest text-xs mb-4">¿Siguiente Paso?</h4>
-                    <p className="text-white font-medium text-xl m-0 relative z-10 leading-relaxed">
-                        Si deseas profundizar en un análisis adaptado a tu organización y tus retos específicos, considera una conversación estratégica donde exploraremos juntos cómo implementar estas transformaciones en tu modelo de negocio.
-                    </p>
-                </div>
+        {/* COLUMNA IZQUIERDA: CONTENIDO */}
+        <motion.main 
+          className="lg:col-span-8"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        >
+            <div ref={contentRef} className="max-w-none">
+                <PortableText 
+                    value={post.body} 
+                    components={ptComponents} 
+                />
             </div>
 
-            {/* BARRA DE COMPARTIR */}
-            <div className="mt-20 pt-10 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-6">
-                <span className="text-sm font-bold text-white uppercase tracking-widest opacity-80">
-                    Comparte este insight
+            {/* CALL TO ACTION */}
+            <div className="bg-gradient-to-r from-[#111] to-[#0a0a0a] border border-qualtop-orange/20 p-8 md:p-12 rounded-2xl mt-20 mb-10 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-qualtop-orange/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-qualtop-orange/20 transition-all duration-700"></div>
+                
+                <h4 className="text-qualtop-orange font-bold uppercase tracking-[0.2em] text-xs mb-6 flex items-center gap-2">
+                  <span className="w-8 h-[1px] bg-qualtop-orange"></span> Siguiente Paso
+                </h4>
+                
+                <p className="text-white font-medium text-xl md:text-2xl m-0 relative z-10 leading-relaxed mb-8">
+                    ¿Tu organización enfrenta retos similares? Hablemos sobre cómo implementar estas soluciones hoy.
+                </p>
+                
+                <button onClick={() => navigate('/contact-home')} className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-qualtop-orange hover:text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,77,0,0.4)]">
+                   Contactar Consultor <ArrowLeft className="rotate-180" size={16}/>
+                </button>
+            </div>
+
+            {/* SHARE BAR */}
+            <div className="mt-16 pt-10 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-6">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                    Comparte este artículo
                 </span>
-                <div className="flex gap-4">
-                     <button 
-                        onClick={() => shareToSocial('linkedin')}
-                        className="p-3 bg-white/5 rounded-full hover:bg-[#0077b5] hover:text-white transition-colors group"
-                        title="Compartir en LinkedIn"
-                     >
-                        <Linkedin size={20} className="group-hover:scale-110 transition-transform"/>
-                     </button>
-
-                     <button 
-                        onClick={() => shareToSocial('twitter')}
-                        className="p-3 bg-white/5 rounded-full hover:bg-black hover:text-white transition-colors group"
-                        title="Compartir en X"
-                     >
-                        <Twitter size={20} className="group-hover:scale-110 transition-transform"/>
-                     </button>
-                     
-                     <button
-                        onClick={handleSharePost}
-                        className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-qualtop-orange text-white rounded-full transition-all duration-300 active:scale-95"
-                     >
-                        <Share2 size={18} />
-                        <span>Compartir</span>
+                <div className="flex gap-3">
+                     <button onClick={() => shareToSocial('linkedin')} className="p-3 bg-white/5 rounded-full hover:bg-[#0077b5] hover:text-white transition-all hover:-translate-y-1"><Linkedin size={18}/></button>
+                     <button onClick={() => shareToSocial('twitter')} className="p-3 bg-white/5 rounded-full hover:bg-black hover:text-white transition-all hover:-translate-y-1"><Twitter size={18}/></button>
+                     <button onClick={handleSharePost} className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-qualtop-orange text-white rounded-full transition-all hover:-translate-y-1 active:scale-95 text-sm font-medium">
+                        <Share2 size={16} /><span>Copiar Link</span>
                     </button>
                 </div>
             </div>
-        </main>
+        </motion.main>
 
-        {/* SIDEBAR */}
+        {/* SIDEBAR (Sticky) */}
         <aside className="lg:col-span-4 space-y-12">
-            <div className="bg-[#111] p-8 rounded-2xl border border-white/5 sticky top-32 shadow-xl">
-                <div className="flex items-center gap-3 mb-4 text-qualtop-orange">
-                    <Mail size={24} />
-                    <span className="font-bold uppercase tracking-widest text-xs">Newsletter</span>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-4">
-                    Estrategia Tecnológica en tu bandeja.
-                </h3>
-                <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                    Suscríbete para recibir nuestros últimos casos de éxito, tendencias de IA y análisis de mercado directamente en tu correo.
-                </p>
-                
-                <form className="space-y-3" onSubmit={handleSubscribe}>
-                    <input
-                        type="email"
-                        required
-                        placeholder="tu@correo.com"
-                        className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-qualtop-orange focus:outline-none transition-colors disabled:opacity-50"
-                        disabled={subStatus === 'loading' || subStatus === 'success'}
-                    />
-                    <button 
-                        type="submit"
-                        disabled={subStatus !== 'idle'}
-                        className={`
-                            w-full font-bold uppercase tracking-widest text-xs py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2
-                            ${subStatus === 'success' ? 'bg-green-600 text-white border border-green-500' : 'bg-white text-black hover:bg-qualtop-orange hover:text-white'}
-                            ${subStatus === 'loading' ? 'opacity-80 cursor-wait' : ''}
-                        `}
-                    >
-                        {subStatus === 'idle' && "Suscribirme"}
-                        {subStatus === 'loading' && <><Loader2 className="animate-spin" size={16} /> Procesando...</>}
-                        {subStatus === 'success' && <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="flex items-center gap-2"><Check size={16} /> ¡Suscrito!</motion.div>}
-                    </button>
-                </form>
+            <div className="lg:sticky lg:top-32 space-y-8">
+              
+              {/* Newsletter Box */}
+              <div className="bg-[#0f0f0f] p-8 rounded-2xl border border-white/5 shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-qualtop-orange/10 blur-xl rounded-full"></div>
+                  
+                  <div className="flex items-center gap-3 mb-6 text-qualtop-orange">
+                      <Mail size={20} />
+                      <span className="font-bold uppercase tracking-widest text-xs">Newsletter</span>
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-white mb-3">
+                      Inteligencia directo a tu inbox.
+                  </h3>
+                  <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+                      Análisis de mercado, tendencias Tech y casos de éxito Qualtop. Sin spam.
+                  </p>
+                  
+                  <form className="space-y-3" onSubmit={handleSubscribe}>
+                      <input type="email" required placeholder="tu@empresa.com" className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:outline-none transition-all placeholder:text-gray-600" disabled={subStatus === 'loading' || subStatus === 'success'} />
+                      <button type="submit" disabled={subStatus !== 'idle'} className={`w-full font-bold uppercase tracking-widest text-xs py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${subStatus === 'success' ? 'bg-green-600 text-white' : 'bg-white text-black hover:bg-qualtop-orange hover:text-white'} ${subStatus === 'loading' ? 'opacity-70' : ''}`}>
+                          {subStatus === 'idle' && "Suscribirme"}
+                          {subStatus === 'loading' && <><Loader2 className="animate-spin" size={16} /></>}
+                          {subStatus === 'success' && <><Check size={16} /> Listo</>}
+                      </button>
+                  </form>
+              </div>
+
             </div>
         </aside>
 
       </div>
 
-      {/* TOAST NOTIFICATION (Solo para Desktop/Fallback) */}
+      {/* TOAST NOTIFICACIÓN */}
       <AnimatePresence>
         {copied && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-8 right-8 z-[9999] bg-white text-black px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3"
-          >
-            <Check size={20} className="text-green-600" />
-            <span className="font-bold text-sm">¡Enlace copiado!</span>
+          <motion.div initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 20, x: '-50%' }} className="fixed bottom-10 left-1/2 z-[9999] bg-white text-black px-6 py-3 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center gap-3 border border-gray-200">
+            <div className="bg-green-100 text-green-700 p-1 rounded-full"><Check size={14} /></div>
+            <span className="font-bold text-sm tracking-wide">Enlace copiado al portapapeles</span>
           </motion.div>
         )}
       </AnimatePresence>

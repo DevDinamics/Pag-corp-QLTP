@@ -15,7 +15,7 @@ import PartnersSection from './PartnersSection';
 import CTASection from './CTASection';
 import ContactSection from './ContactSection';
 import Footer from './Footer';
-import BlogHome from './BlogHome';
+import BlogHome from './BlogPrincipal';
 import BlogPost from './assets/pages/BlogPost';
 import ContactHome from './ContactHome';
 
@@ -155,6 +155,8 @@ export default function App() {
       <ScrollToHashElement />
       
       <main className="relative w-full min-h-screen bg-[#000000] selection:bg-qualtop-orange selection:text-white font-sans text-white">      
+        
+        
         <Navbar />
         
         <Routes>
@@ -164,7 +166,8 @@ export default function App() {
           {/* Páginas Independientes */}
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/blog" element={<BlogHome />} />
-          <Route path="/blog/gestion-siniestros" element={<BlogPost />} />
+          
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/contact-home" element={<ContactHome />} />
 
           {/* Redirección */}
