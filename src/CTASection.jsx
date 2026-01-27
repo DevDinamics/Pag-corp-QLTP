@@ -3,6 +3,15 @@ import { motion } from 'framer-motion';
 import { CalendarCheck, ArrowRight } from 'lucide-react';
 
 export default function CTASection() {
+
+  // --- FUNCIÓN PARA SCROLL SUAVE ---
+  const scrollToContact = () => {
+    const contactSection = document.getElementById('contacto');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative w-full bg-[#050505] py-24 px-6 overflow-hidden">
       
@@ -17,22 +26,19 @@ export default function CTASection() {
           className="relative w-full rounded-3xl overflow-hidden border border-qualtop-orange group"
         >
           
-          {/* 1. FONDO CON MOVIMIENTO (Cinemático) */}
+          {/* ... (TUS FONDOS Y EFECTOS SIGUEN IGUAL) ... */}
           <div className="absolute inset-0 z-0">
             <motion.img 
-              src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop" // Imagen tecnológica abstracta
+              src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop"
               alt="Tech Background" 
               className="w-full h-full object-cover opacity-40"
-              animate={{ scale: [1, 1.1] }} // Zoom muy lento
+              animate={{ scale: [1, 1.1] }} 
               transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
             />
-            {/* Gradiente para asegurar lectura del texto */}
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-qualtop-orange/10 mix-blend-multiply"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40"></div>
           </div>
 
-          {/* 2. EFECTO DE RESPLANDOR (Glow) */}
-          {/* Luz naranja ambiental en la esquina */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-qualtop-orange/20 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-pulse"></div>
 
           {/* 3. CONTENIDO TEXTUAL */}
@@ -68,7 +74,10 @@ export default function CTASection() {
               transition={{ delay: 0.4 }}
               className="flex-shrink-0"
             >
-              <button className="group relative bg-qualtop-orange hover:bg-[#ff5e1a] text-white font-bold py-5 px-10 rounded-lg overflow-hidden transition-all duration-300 shadow-[0_0_40px_rgba(255,77,0,0.3)] hover:shadow-[0_0_60px_rgba(255,77,0,0.5)] hover:scale-105">
+              <button 
+                onClick={scrollToContact} // 👈 AQUÍ CONECTAMOS LA FUNCIÓN
+                className="group relative bg-qualtop-orange hover:bg-[#ff5e1a] text-white font-bold py-5 px-10 rounded-lg overflow-hidden transition-all duration-300 shadow-[0_0_40px_rgba(255,77,0,0.3)] hover:shadow-[0_0_60px_rgba(255,77,0,0.5)] hover:scale-105"
+              >
                 
                 {/* Brillo que pasa por el botón */}
                 <div className="absolute top-0 left-[-100%] w-[50%] h-full bg-white/20 skew-x-[-20deg] group-hover:left-[180%] transition-all duration-700 ease-in-out"></div>
@@ -81,7 +90,6 @@ export default function CTASection() {
               </button>
               
               <p className="mt-4 text-center md:text-right text-xs text-gray-500 font-medium tracking-wider uppercase opacity-60">
-                
               </p>
             </motion.div>
 

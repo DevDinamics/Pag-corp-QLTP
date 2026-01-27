@@ -1,84 +1,72 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { PortableText } from '@portabletext/react';
 import {
-  Calendar, ArrowLeft, Share2,
-  Check, Mail, Linkedin, Twitter, Loader2, ExternalLink
+  Calendar, ArrowLeft, Share2, Check, Mail, 
+  Linkedin, Twitter, Loader2, ExternalLink, Clock
 } from 'lucide-react';
 
 // CONEXIÓN CON SANITY
 import { client, urlFor } from '../../client'; 
 
-// --- 1. ESTILOS "PRO" PARA EL CONTENIDO (PortableText) ---
+// =================================================================
+// 1. ESTILOS DE TIPOGRAFÍA (SOLUCIÓN DEFINITIVA AL TEXTO ENCIMADO)
+// =================================================================
 const ptComponents = {
   block: {
-    // H2: Borde naranja, espaciado amplio, tipografía clara
+    // H2: Espaciado masivo para separar secciones
     h2: ({children}) => (
-      <h2 className="text-2xl md:text-3xl font-bold text-white mt-16 mb-8 border-l-4 border-qualtop-orange pl-6 leading-tight">
+      <h2 className="text-3xl md:text-4xl font-bold text-white mt-20 mb-8 leading-tight tracking-tight relative group">
+        <span className="absolute -left-6 top-2 w-1 h-8 bg-qualtop-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block"></span>
         {children}
       </h2>
     ),
-    // H3: Subtítulos
+    // H3: Subtítulos claros
     h3: ({children}) => (
-      <h3 className="text-xl font-bold text-white mt-10 mb-4">
+      <h3 className="text-2xl font-semibold text-white mt-12 mb-6 leading-snug">
         {children}
       </h3>
     ),
-    // Párrafos: Color gris claro para no cansar la vista (UX), altura de línea cómoda
+    // PÁRRAFO: Aquí está la magia. leading-loose (espaciado entre lineas amplio)
     normal: ({children}) => (
-      <p className="text-lg text-gray-300 leading-9 mb-8 font-light">
+      <p className="text-lg md:text-xl text-gray-300 leading-[1.8] mb-8 font-light text-justify md:text-left">
         {children}
       </p>
     ),
-    // Citas: Caja destacada oscura
+    // CITAS
     blockquote: ({children}) => (
-      <blockquote className="bg-[#111] border-l-4 border-qualtop-orange p-8 my-12 rounded-r-xl shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-           <span className="text-6xl text-qualtop-orange font-serif">"</span>
-        </div>
-        <p className="text-xl text-white italic m-0 leading-relaxed font-medium relative z-10">
-          {children}
-        </p>
+      <blockquote className="my-16 relative pl-8 md:pl-12 border-l-2 border-qualtop-orange bg-white/5 p-8 rounded-r-xl font-serif italic text-xl md:text-2xl text-white leading-relaxed">
+        "{children}"
       </blockquote>
     ),
   },
   list: {
-    bullet: ({children}) => <ul className="list-disc pl-6 space-y-4 mb-10 text-gray-300 marker:text-qualtop-orange text-lg leading-8">{children}</ul>,
-    number: ({children}) => <ol className="list-decimal pl-6 space-y-4 mb-10 text-gray-300 marker:text-qualtop-orange text-lg leading-8">{children}</ol>,
+    bullet: ({children}) => <ul className="list-disc pl-6 md:pl-10 space-y-4 mb-12 text-gray-300 text-lg md:text-xl leading-relaxed marker:text-qualtop-orange">{children}</ul>,
+    number: ({children}) => <ol className="list-decimal pl-6 md:pl-10 space-y-4 mb-12 text-gray-300 text-lg md:text-xl leading-relaxed marker:text-qualtop-orange">{children}</ol>,
   },
-  // --- NUEVO: Estilos para Enlaces dentro del texto ---
   marks: {
-    link: ({children, value}) => {
-      const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
-      return (
-        <a 
-          href={value.href} 
-          rel={rel} 
-          target="_blank"
-          className="text-qualtop-orange hover:text-white underline decoration-qualtop-orange/50 underline-offset-4 hover:decoration-white transition-all inline-flex items-center gap-1 font-medium"
-        >
-          {children} <ExternalLink size={14} className="opacity-50" />
-        </a>
-      );
-    }
+    link: ({children, value}) => (
+      <a href={value.href} target="_blank" rel="noreferrer" className="text-qualtop-orange hover:text-white underline decoration-qualtop-orange/40 hover:decoration-white underline-offset-4 transition-all font-medium inline-flex items-center gap-1">
+        {children} <ExternalLink size={14} className="opacity-70" />
+      </a>
+    ),
+    strong: ({children}) => <strong className="font-bold text-white">{children}</strong>
   },
   types: {
     image: ({value}) => {
-      if (!value?.asset?._ref) { return null; }
+      if (!value?.asset?._ref) return null;
       return (
-        <figure className="my-12">
-          <div className="border border-white/10 rounded-xl overflow-hidden shadow-2xl">
-            <img
-              src={urlFor(value).width(1200).url()}
-              alt={value.alt || 'Imagen del blog'}
-              className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
-            />
-          </div>
+        <figure className="my-16 -mx-6 md:-mx-0">
+          <img
+            src={urlFor(value).width(1200).url()}
+            alt={value.alt || 'Imagen del artículo'}
+            className="w-full h-auto md:rounded-2xl shadow-2xl border border-white/5"
+          />
           {value.caption && (
-            <figcaption className="text-center text-gray-500 text-sm mt-3 italic border-b border-white/5 pb-2 inline-block px-4 mx-auto">
-              {value.caption}
+            <figcaption className="text-center text-gray-500 text-sm mt-4 font-mono">
+              — {value.caption}
             </figcaption>
           )}
         </figure>
@@ -90,20 +78,31 @@ const ptComponents = {
 export default function BlogPost() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const contentRef = useRef(null);
   
-  // ESTADOS
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [subStatus, setSubStatus] = useState('idle');
+  
+  // Barra de progreso
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-  // --- CARGA DE DATOS ---
+  // Cálculo de tiempo de lectura
+  const calculateReadingTime = (blocks) => {
+    if(!blocks) return 5;
+    const text = blocks.map(block => block.children?.map(child => child.text).join('')).join(' ');
+    const words = text.split(' ').length;
+    return Math.ceil(words / 200); 
+  };
+
   useEffect(() => {
+    // QUERY ACTUALIZADA: Incluye 'subtitle' por si lo agregas a Sanity
     const query = `*[_type == "post" && slug.current == $slug][0]{
       title,
+      subtitle, 
       mainImage,
       publishedAt,
+      excerpt,
       body,
       "authorName": author->name,
       "authorImage": author->image, 
@@ -111,228 +110,186 @@ export default function BlogPost() {
     }`;
 
     setLoading(true);
-    client.fetch(query, { slug })
-      .then((data) => {
+    client.fetch(query, { slug }).then((data) => {
         setPost(data);
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error cargando post:", err);
-        setLoading(false);
-      });
+      }).catch((err) => { console.error(err); setLoading(false); });
   }, [slug]);
 
-  // Scroll al inicio al cargar
-  useEffect(() => {
-    if (!loading && post) window.scrollTo(0, 0);
-  }, [loading, post]);
+  useEffect(() => { if (!loading && post) window.scrollTo(0, 0); }, [loading, post]);
 
-  // --- FUNCIONES DE COMPARTIR ---
-  const handleSharePost = async () => {
+  // COPIAR LINK
+  const handleCopyLink = async () => {
     const url = window.location.href; 
-    const title = post?.title || "Blog Qualtop";
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
-
-    if (isMobile && navigator.share) {
-      try { await navigator.share({ title, url }); } catch (error) { console.log('Cancelado'); }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      } catch (err) { console.error('Error', err); }
-    }
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch (err) {}
   };
 
+  // COMPARTIR REDES SOCIALES (Popup Pro)
   const shareToSocial = (platform) => {
     const url = encodeURIComponent(window.location.href); 
-    const text = encodeURIComponent(`Lectura recomendada: ${post?.title}`);
     let shareUrl = "";
-    if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-    if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
-    window.open(shareUrl, '_blank', 'width=600,height=600');
+
+    if (platform === 'linkedin') {
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+    } 
+    
+    if (platform === 'twitter') {
+        const text = encodeURIComponent(`🚀 Lectura recomendada: ${post?.title} vía @Qualtop`);
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+    }
+
+    const width = 600;
+    const height = 600;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+    
+    window.open(
+        shareUrl, 
+        'Compartir', 
+        `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=${width}, height=${height}, top=${top}, left=${left}`
+    );
   };
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    setSubStatus('loading');
-    setTimeout(() => { setSubStatus('success'); setTimeout(() => setSubStatus('idle'), 3000); }, 1500);
-  };
+  if (loading) return <div className="bg-[#050505] min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-qualtop-orange" size={40} /></div>;
+  if (!post) return null;
 
-  // --- RENDERIZADO ---
-  if (loading) {
-    return (
-      <div className="bg-[#080808] min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-qualtop-orange" size={40} />
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="bg-[#080808] min-h-screen flex flex-col items-center justify-center text-white">
-        <h2 className="text-2xl font-bold mb-4">Artículo no encontrado</h2>
-        <button onClick={() => navigate('/blog')} className="text-qualtop-orange hover:underline">Volver al Blog</button>
-      </div>
-    );
-  }
+  const readingTime = calculateReadingTime(post.body);
 
   return (
-    <div className="bg-[#080808] text-gray-300 font-sans selection:bg-qualtop-orange selection:text-white min-h-screen">
-      
+    <div className="bg-[#050505] text-gray-200 font-sans min-h-screen selection:bg-qualtop-orange selection:text-white">
       <Helmet>
-        <title>{post.title} | Blog Qualtop</title>
-        <meta name="description" content={`Lee sobre ${post.title} en el blog de Qualtop.`} />
+        <title>{post.title} | Qualtop Blog</title>
+        <meta name="description" content={post.excerpt || "Lee este artículo en el blog de Qualtop."} />
+
+        {/* --- OPEN GRAPH (LINKEDIN / FACEBOOK) --- */}
+        <meta property="og:type" content="article" />
         <meta property="og:title" content={post.title} />
-        {post.mainImage && <meta property="og:image" content={urlFor(post.mainImage).width(800).url()} />}
+        <meta property="og:description" content={post.excerpt || post.subtitle} />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:site_name" content="Qualtop" />
+        
+        {/* IMAGEN 1200x630 (Perfecta para LinkedIn) */}
+        {post.mainImage && (
+            <meta 
+            property="og:image" 
+            content={urlFor(post.mainImage).width(1200).height(630).fit('crop').url()} 
+            />
+        )}
+        
+        {/* --- TWITTER CARDS --- */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={post.excerpt} />
+        {post.mainImage && (
+            <meta 
+            name="twitter:image" 
+            content={urlFor(post.mainImage).width(1200).height(630).fit('crop').url()} 
+            />
+        )}
       </Helmet>
 
+      {/* --- BARRA DE PROGRESO DE LECTURA --- */}
+      <motion.div style={{ scaleX }} className="fixed top-0 left-0 right-0 h-1 bg-qualtop-orange origin-left z-[100]" />
+
       {/* --- HERO HEADER --- */}
-      <header className="relative pt-32 pb-20 px-6 bg-[#0a0a0a] border-b border-white/5 overflow-hidden">
-         {/* Fondo sutil (Glow) */}
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-qualtop-orange/5 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+      <header className="relative pt-40 pb-20 px-6 md:px-12 border-b border-white/5 bg-[#050505] overflow-hidden">
+         <div className="absolute top-0 right-0 w-[80vw] h-[80vw] bg-white/5 rounded-full blur-[150px] opacity-20 pointer-events-none translate-x-1/2 -translate-y-1/2" />
 
-         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10">
-            <div className="lg:col-span-10">
-                <div className="flex flex-wrap items-center gap-4 mb-8">
-                    <button onClick={() => navigate('/blog')} className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group">
-                        <ArrowLeft size={14} className="text-qualtop-orange group-hover:-translate-x-1 transition-transform" />
-                        Volver al Blog
-                    </button>
+         <div className="max-w-5xl mx-auto relative z-10">
+            <button onClick={() => navigate('/blog')} className="group flex items-center gap-3 text-sm font-bold tracking-widest text-gray-500 hover:text-white mb-10 transition-colors uppercase">
+                <div className="p-2 rounded-full border border-white/10 group-hover:bg-white group-hover:text-black transition-all">
+                   <ArrowLeft size={16} />
                 </div>
+                Volver
+            </button>
 
-                <motion.h1 
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  className="text-3xl md:text-5xl lg:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-8"
-                >
-                    {post.title}
-                </motion.h1>
+            <div className="flex items-center gap-4 mb-8">
+                <span className="px-3 py-1 rounded-md bg-white/10 text-white text-xs font-bold uppercase tracking-widest border border-white/10">
+                    {post.categories ? post.categories[0] : "Tech"}
+                </span>
+                <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase tracking-widest">
+                    <Clock size={14} /> {readingTime} min lectura
+                </span>
+            </div>
 
-                <motion.div 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-                  className="flex flex-wrap items-center gap-6 text-sm text-gray-400 border-t border-white/5 pt-8"
-                >
-                    {/* AVATAR */}
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full border border-white/10 overflow-hidden bg-white/5">
-                            {post.authorImage ? (
-                                <img 
-                                    src={urlFor(post.authorImage).width(100).height(100).url()} 
-                                    alt={post.authorName}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center font-bold text-white text-xs bg-gradient-to-br from-gray-800 to-black">QT</div>
-                            )}
-                        </div>
-                        <div>
-                            <p className="text-white font-bold leading-none text-base">{post.authorName || "Equipo Qualtop"}</p>
-                            <p className="text-xs text-qualtop-orange mt-1 font-medium tracking-wide uppercase">{post.categories ? post.categories[0] : "Tecnología"}</p>
-                        </div>
-                    </div>
-                    
-                    {/* FECHA */}
-                    <div className="flex items-center gap-2 pl-4 border-l border-white/10">
-                        <Calendar size={18} className="text-gray-500"/>
-                        <span>{new Date(post.publishedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                    </div>
-                </motion.div>
+            {/* TÍTULO AJUSTADO: Más controlado y estético */}
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white tracking-tighter leading-[1.1] mb-6 max-w-4xl">
+                {post.title}
+            </h1>
+
+            {/* SUBTÍTULO (Si existe en Sanity) */}
+            {post.subtitle && (
+                <p className="text-xl md:text-2xl text-gray-400 font-light leading-relaxed max-w-3xl mb-10">
+                    {post.subtitle}
+                </p>
+            )}
+
+            {/* AUTOR */}
+            <div className="flex items-center gap-4 border-t border-white/10 pt-8 mt-8">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/10">
+                    {post.authorImage ? <img src={urlFor(post.authorImage).width(100).url()} className="w-full h-full object-cover"/> : <div className="w-full h-full bg-gray-800"/>}
+                </div>
+                <div>
+                    <p className="text-white font-bold text-base">{post.authorName || "Equipo Qualtop"}</p>
+                    <p className="text-gray-500 text-sm">{new Date(post.publishedAt).toLocaleDateString('es-ES', { dateStyle: 'long' })}</p>
+                </div>
             </div>
          </div>
       </header>
 
       {/* --- BODY --- */}
-      <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+      <div className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-12 gap-16">
         
-        {/* COLUMNA IZQUIERDA: CONTENIDO */}
-        <motion.main 
-          className="lg:col-span-8"
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-        >
-            <div ref={contentRef} className="max-w-none">
-                <PortableText 
-                    value={post.body} 
-                    components={ptComponents} 
-                />
+        {/* CONTENIDO */}
+        <article className="lg:col-span-8 lg:col-start-1 max-w-none">
+            <div className="prose prose-xl prose-invert max-w-none">
+                <PortableText value={post.body} components={ptComponents} />
             </div>
 
-            {/* CALL TO ACTION */}
-            <div className="bg-gradient-to-r from-[#111] to-[#0a0a0a] border border-qualtop-orange/20 p-8 md:p-12 rounded-2xl mt-20 mb-10 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-qualtop-orange/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-qualtop-orange/20 transition-all duration-700"></div>
-                
-                <h4 className="text-qualtop-orange font-bold uppercase tracking-[0.2em] text-xs mb-6 flex items-center gap-2">
-                  <span className="w-8 h-[1px] bg-qualtop-orange"></span> Siguiente Paso
-                </h4>
-                
-                <p className="text-white font-medium text-xl md:text-2xl m-0 relative z-10 leading-relaxed mb-8">
-                    ¿Tu organización enfrenta retos similares? Hablemos sobre cómo implementar estas soluciones hoy.
-                </p>
-                
-                <button onClick={() => navigate('/contact-home')} className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-qualtop-orange hover:text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,77,0,0.4)]">
-                   Contactar Consultor <ArrowLeft className="rotate-180" size={16}/>
+            {/* CTA INTERNO */}
+            <div className="my-20 p-10 bg-[#111] rounded-2xl border border-white/10 relative overflow-hidden group text-center md:text-left">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-qualtop-orange/10 blur-[80px] group-hover:bg-qualtop-orange/20 transition-all duration-700" />
+                <h3 className="text-2xl font-bold text-white mb-4 relative z-10">¿Te interesa este tema?</h3>
+                <p className="text-gray-400 mb-8 relative z-10 text-lg">Descubre cómo Qualtop puede impulsar la transformación digital de tu negocio.</p>
+                <button onClick={() => navigate('/contact-home')} className="relative z-10 bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-qualtop-orange hover:text-white transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                    Agendar Consultoría
                 </button>
             </div>
+        </article>
 
-            {/* SHARE BAR */}
-            <div className="mt-16 pt-10 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-6">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                    Comparte este artículo
-                </span>
-                <div className="flex gap-3">
-                     <button onClick={() => shareToSocial('linkedin')} className="p-3 bg-white/5 rounded-full hover:bg-[#0077b5] hover:text-white transition-all hover:-translate-y-1"><Linkedin size={18}/></button>
-                     <button onClick={() => shareToSocial('twitter')} className="p-3 bg-white/5 rounded-full hover:bg-black hover:text-white transition-all hover:-translate-y-1"><Twitter size={18}/></button>
-                     <button onClick={handleSharePost} className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-qualtop-orange text-white rounded-full transition-all hover:-translate-y-1 active:scale-95 text-sm font-medium">
-                        <Share2 size={16} /><span>Copiar Link</span>
-                    </button>
+        {/* SIDEBAR STICKY */}
+        <aside className="lg:col-span-3 lg:col-start-10 hidden lg:block h-full">
+            <div className="sticky top-32 space-y-12">
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-white/10 pb-2">Compartir</p>
+                    <div className="flex flex-col gap-3">
+                        <button onClick={handleCopyLink} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group">
+                            <div className="p-2 rounded-full bg-white/5 group-hover:bg-white group-hover:text-black transition-all"><Share2 size={18}/></div>
+                            <span className="text-sm font-medium">Copiar Enlace</span>
+                        </button>
+                        <button onClick={() => shareToSocial('linkedin')} className="flex items-center gap-3 text-gray-400 hover:text-[#0077b5] transition-colors group">
+                            <div className="p-2 rounded-full bg-white/5 group-hover:bg-[#0077b5] group-hover:text-white transition-all"><Linkedin size={18}/></div>
+                            <span className="text-sm font-medium">LinkedIn</span>
+                        </button>
+                        <button onClick={() => shareToSocial('twitter')} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group">
+                            <div className="p-2 rounded-full bg-white/5 group-hover:bg-black group-hover:text-white transition-all"><Twitter size={18}/></div>
+                            <span className="text-sm font-medium">X (Twitter)</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </motion.main>
-
-        {/* SIDEBAR (Sticky) */}
-        <aside className="lg:col-span-4 space-y-12">
-            <div className="lg:sticky lg:top-32 space-y-8">
-              
-              {/* Newsletter Box */}
-              <div className="bg-[#0f0f0f] p-8 rounded-2xl border border-white/5 shadow-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-qualtop-orange/10 blur-xl rounded-full"></div>
-                  
-                  <div className="flex items-center gap-3 mb-6 text-qualtop-orange">
-                      <Mail size={20} />
-                      <span className="font-bold uppercase tracking-widest text-xs">Newsletter</span>
-                  </div>
-                  
-                  <h3 className="text-lg font-bold text-white mb-3">
-                      Inteligencia directo a tu inbox.
-                  </h3>
-                  <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-                      Análisis de mercado, tendencias Tech y casos de éxito Qualtop. Sin spam.
-                  </p>
-                  
-                  <form className="space-y-3" onSubmit={handleSubscribe}>
-                      <input type="email" required placeholder="tu@empresa.com" className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:outline-none transition-all placeholder:text-gray-600" disabled={subStatus === 'loading' || subStatus === 'success'} />
-                      <button type="submit" disabled={subStatus !== 'idle'} className={`w-full font-bold uppercase tracking-widest text-xs py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${subStatus === 'success' ? 'bg-green-600 text-white' : 'bg-white text-black hover:bg-qualtop-orange hover:text-white'} ${subStatus === 'loading' ? 'opacity-70' : ''}`}>
-                          {subStatus === 'idle' && "Suscribirme"}
-                          {subStatus === 'loading' && <><Loader2 className="animate-spin" size={16} /></>}
-                          {subStatus === 'success' && <><Check size={16} /> Listo</>}
-                      </button>
-                  </form>
-              </div>
-
             </div>
         </aside>
 
       </div>
 
-      {/* TOAST NOTIFICACIÓN */}
+      {/* TOAST */}
       <AnimatePresence>
         {copied && (
-          <motion.div initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 20, x: '-50%' }} className="fixed bottom-10 left-1/2 z-[9999] bg-white text-black px-6 py-3 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center gap-3 border border-gray-200">
-            <div className="bg-green-100 text-green-700 p-1 rounded-full"><Check size={14} /></div>
-            <span className="font-bold text-sm tracking-wide">Enlace copiado al portapapeles</span>
+          <motion.div initial={{y:50, opacity:0}} animate={{y:0, opacity:1}} exit={{y:50, opacity:0}} className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-full font-bold shadow-2xl z-50 flex items-center gap-2">
+             <Check size={18} className="text-green-600"/> Link copiado
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

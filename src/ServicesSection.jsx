@@ -1,118 +1,151 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Share2, Cpu } from 'lucide-react';
+import { ShieldAlert, Share2, Cpu, ArrowRight } from 'lucide-react';
 
 const services = [
   {
-    title: "Reducción de Riesgos Críticos",
-    desc: "Reducimos riesgos en sistemas y datos que sostienen la operación.",
-    details: "Implementamos capas de seguridad activa y redundancia de datos para asegurar que los procesos vitales de la banca nunca se detengan.",
-    icon: <ShieldAlert size={28} />,
+    id: "01",
+    title: "Reducción de Riesgos",
+    desc: "Blindaje de sistemas críticos.",
+    details: "Arquitectura de seguridad activa y redundancia de datos para asegurar continuidad operativa 24/7.",
+    icon: <ShieldAlert size={24} />,
   },
   {
-    title: "Interconexión de Sistemas",
-    desc: "Conectamos sistemas para recuperar visibilidad y control total.",
-    details: "Unificamos plataformas heredadas con arquitecturas modernas, permitiendo un flujo de información en tiempo real sin silos de datos.",
-    icon: <Share2 size={28} />,
+    id: "02",
+    title: "Interconexión Total",
+    desc: "Eliminación de silos de datos.",
+    details: "Unificamos plataformas legacy con arquitecturas modernas para un flujo de información en tiempo real.",
+    icon: <Share2 size={24} />,
   },
   {
-    title: "Activación de Inteligencia Artificial",
-    desc: "Activamos IA para automatizar decisiones y escalar la inteligencia.",
-    details: "Desplegamos modelos predictivos y algoritmos de aprendizaje automático que transforman datos crudos en decisiones estratégicas.",
-    icon: <Cpu size={28} />,
+    id: "03",
+    title: "Inteligencia Artificial",
+    desc: "Decisiones automatizadas.",
+    details: "Modelos predictivos que transforman datos crudos en estrategias de negocio escalables.",
+    icon: <Cpu size={24} />,
   }
 ];
 
-const InfoCard = ({ service, index }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
+const ServiceNode = ({ service, index, isHovered, onHover, onLeave }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="relative min-h-[400px] rounded-2xl border border-white/10 bg-[#0a0a0a] p-8 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-qualtop-orange/30"
+    <div 
+      className="relative pl-16 md:pl-24 py-8 group cursor-pointer"
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
     >
-      {/* --- EFECTO DE FONDO (PATRÓN TECNOLÓGICO) --- */}
-      <div 
-        className={`absolute inset-0 opacity-[0.03] transition-opacity duration-700 ${isHovered ? 'opacity-[0.07]' : ''}`}
-        style={{ 
-          backgroundImage: `radial-gradient(circle, #FF4D00 1px, transparent 1px)`,
-          backgroundSize: '24px 24px'
-        }}
-      />
-
-      {/* --- ICONO Y TÍTULO --- */}
-      <div className="relative z-10">
-        <div className={`mb-8 w-14 h-14 rounded-xl flex items-center justify-center border transition-all duration-500 ${
-          isHovered ? 'bg-qualtop-orange border-qualtop-orange text-white shadow-[0_0_20px_rgba(255,77,0,0.4)]' : 'bg-white/5 border-white/10 text-qualtop-orange'
-        }`}>
-          {service.icon}
+      {/* --- LÍNEA VERTICAL CONECTORA (Circuit Line) --- */}
+      {/* Solo se muestra si no es el último elemento para conectar con el siguiente */}
+      {index !== services.length - 1 && (
+        <div className="absolute left-[27px] md:left-[35px] top-16 bottom-0 w-[2px] bg-white/10 overflow-hidden">
+            <motion.div 
+                initial={{ y: '-100%' }}
+                animate={{ y: isHovered ? '100%' : '-100%' }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                className="w-full h-1/2 bg-gradient-to-b from-transparent via-qualtop-orange to-transparent opacity-50"
+            />
         </div>
+      )}
 
-        <h3 className="text-2xl font-bold text-white leading-tight mb-4 tracking-tight">
-          {service.title}
-        </h3>
-        
-        <p className={`text-base leading-relaxed transition-colors duration-500 ${isHovered ? 'text-white' : 'text-gray-400'}`}>
-          {service.desc}
-        </p>
+      {/* --- EL NODO (ICONO) --- */}
+      <div className={`absolute left-0 top-8 w-14 h-14 md:w-16 md:h-16 rounded-full border-2 flex items-center justify-center z-10 transition-all duration-500 ${
+        isHovered 
+          ? 'bg-[#050505] border-qualtop-orange text-qualtop-orange shadow-[0_0_30px_rgba(255,77,0,0.6)] scale-110' 
+          : 'bg-[#0a0a0a] border-white/10 text-gray-500'
+      }`}>
+        {service.icon}
       </div>
 
-      {/* --- DETALLES INFORMATIVOS (REVELADO) --- */}
-      <div className="relative z-10 mt-auto">
+      {/* --- CONTENIDO --- */}
+      <div className="relative z-10">
+        
+        {/* Número de fondo (Decorativo) */}
+        <span className={`absolute -top-6 -left-4 text-6xl md:text-8xl font-bold opacity-[0.03] select-none transition-colors duration-500 font-mono ${isHovered ? 'text-qualtop-orange' : 'text-white'}`}>
+            {service.id}
+        </span>
+
+        <h3 className={`text-2xl md:text-4xl font-bold transition-colors duration-300 mb-2 flex items-center gap-4 ${isHovered ? 'text-white' : 'text-gray-400'}`}>
+          {service.title}
+          <motion.span 
+            animate={{ x: isHovered ? 10 : 0, opacity: isHovered ? 1 : 0 }}
+            className="text-qualtop-orange hidden md:block"
+          >
+            <ArrowRight size={24} />
+          </motion.span>
+        </h3>
+
+        <p className="text-lg text-gray-400 max-w-xl mb-4">
+          {service.desc}
+        </p>
+
+        {/* Detalles Expandibles (Sin bordes, solo texto puro) */}
         <AnimatePresence>
           {isHovered && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="pt-4 border-t border-white/10"
+              initial={{ opacity: 0, height: 0, x: -20 }}
+              animate={{ opacity: 1, height: 'auto', x: 0 }}
+              exit={{ opacity: 0, height: 0, x: -20 }}
+              className="overflow-hidden"
             >
-              <p className="text-sm text-gray-500 leading-relaxed italic">
-                {service.details}
-              </p>
+              <div className="pl-4 border-l-2 border-qualtop-orange/50 py-1">
+                 <p className="text-base text-gray-300 leading-relaxed max-w-2xl">
+                    {service.details}
+                 </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-        
-        {/* Barra de estado estética */}
-        <div className={`mt-6 h-[2px] transition-all duration-700 ${isHovered ? 'w-full bg-qualtop-orange' : 'w-10 bg-white/20'}`} />
       </div>
-
-      {/* Glow ambiental */}
-      <div className={`absolute -bottom-10 -right-10 w-40 h-40 bg-qualtop-orange/5 blur-[60px] rounded-full transition-opacity duration-700 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
-    </motion.div>
+      
+      {/* Luz ambiental al hacer hover */}
+      {isHovered && (
+         <div className="absolute top-1/2 left-1/4 w-[400px] h-[200px] bg-qualtop-orange/5 blur-[80px] rounded-full pointer-events-none -translate-y-1/2" />
+      )}
+    </div>
   );
 };
 
 export default function ServicesSection() {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
   return (
-    <section className="relative py-32 bg-black overflow-hidden font-sans">
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+    <section className="relative py-32 bg-[#050505] overflow-hidden font-sans">
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
         
-        {/* Header minimalista */}
-        <div className="max-w-3xl mb-20">
-          <div className="flex items-center gap-3 mb-4">
-             <div className="h-2 w-2 rounded-full bg-qualtop-orange animate-pulse" />
-             <p className="text-qualtop-orange font-bold tracking-[0.4em] text-[10px] uppercase">
-               Core Expertise
-             </p>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter leading-tight">
-            Pilares de <span className="text-qualtop-orange">Innovación.</span>
-          </h2>
+        {/* Header a la izquierda */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+            
+            {/* TÍTULO FIJO LATERAL (Sticky en Desktop) */}
+            <div className="lg:col-span-4">
+                <div className="lg:sticky lg:top-32">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="h-[2px] w-12 bg-qualtop-orange" />
+                        <span className="text-qualtop-orange font-bold tracking-[0.3em] text-xs uppercase">Core Solutions</span>
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-8">
+                        Ingeniería <br/>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-600">Invisible.</span>
+                    </h2>
+                    <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                        No vendemos software. Construimos la columna vertebral digital que permite a la banca escalar sin romperse.
+                    </p>
+                </div>
+            </div>
+
+            {/* LISTA DE NODOS (Circuito) */}
+            <div className="lg:col-span-8 space-y-4">
+                {services.map((service, index) => (
+                    <ServiceNode 
+                        key={index} 
+                        service={service} 
+                        index={index}
+                        isHovered={hoveredIndex === index}
+                        onHover={() => setHoveredIndex(index)}
+                        onLeave={() => setHoveredIndex(null)}
+                    />
+                ))}
+            </div>
         </div>
 
-        {/* Grid de Información */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <InfoCard key={index} service={service} index={index} />
-          ))}
-        </div>
       </div>
     </section>
   );

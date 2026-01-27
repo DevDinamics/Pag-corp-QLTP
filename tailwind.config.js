@@ -6,17 +6,24 @@ export default {
   ],
   theme: {
     extend: {
-      // AGREGA ESTA SECCIÓN DE FONTFAMILY
+      // 1. FUENTES
       fontFamily: {
-        // Al ponerla en 'sans', Tailwind la usará automáticamente en todo el sitio
         sans: ['Poppins', 'sans-serif'], 
       },
 
+      // 2. COLORES (Aquí agregamos la paleta Dark Mode)
+      colors: {
+        'qualtop-orange': '#FF4D00', // Tu naranja de siempre
+        'qualtop-dark': '#050505',   // NUEVO: El negro suave para el fondo (menos cansado)
+        'qualtop-card': '#111111',   // NUEVO: Gris muy oscuro para las tarjetas
+      },
+
+      // 3. ANIMACIONES (Conservamos las tuyas)
       animation: {
         'spin-slow': 'spin 20s linear infinite',
         'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
         'hologram': 'hologramPosition 3s ease infinite alternate',
-        'shimmer': 'shimmer 2s linear infinite', // Por si usaste el anterior
+        'shimmer': 'shimmer 2s linear infinite', 
       },
       keyframes: {
         hologramPosition: {
@@ -28,17 +35,12 @@ export default {
           '100%': { transform: 'translateX(100%)' }
         }
       },
-
-      
-      // Tu configuración de colores que ya tenías...
-      colors: {
-        'qualtop-orange': '#FF4D00',
-        // ... otros colores
-      }
     },
   },
-  plugins: [],
-
   
+  // 4. PLUGINS
+  // Agregamos esto para que funcione la clase 'prose' en el Blog
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }
-

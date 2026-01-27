@@ -1,26 +1,73 @@
-/* 1. El import DEBE ir hasta arriba */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* 1. IMPORTAR FUENTE CORRECTA (Poppins) */
+/* Traemos varios pesos: 300(Light), 400(Regular), 500(Medium), 600(SemiBold), 700(Bold) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-/* 2. Luego las directivas de Tailwind */
+/* 2. TAILWIND */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 3. Finalmente tus estilos globales */
+/* 3. ESTILOS GLOBALES "DARK MODE PRO" */
+:root {
+  color-scheme: dark; /* Truco Pro: Le dice al navegador que la UI nativa (como alertas) sea oscura */
+}
+
 body, html {
   margin: 0;
   padding: 0;
-  background-color: #000000; 
-  color: white;
+  
+  /* CAMBIO CRÍTICO: Usamos #050505 (Tu nuevo negro suave) */
+  /* Esto elimina el parpadeo blanco cuando recargas la página */
+  background-color: #050505; 
+  
+  /* Texto base gris claro (#e5e5e5) para lectura cómoda sin cansar la vista */
+  color: #e5e5e5; 
+  
   overflow-x: hidden;
-  /* CAMBIO AQUÍ: Quita height: 100% y pon min-height */
-  min-height: 100vh; 
-  font-family: 'Poppins', sans-serif; /* Cambia Inter por Poppins si ya la instalaste */
+  min-height: 100vh;
+  
+  /* Tipografía consistente */
+  font-family: 'Poppins', sans-serif;
+  
+  /* Hace que el texto se vea más nítido y delgado en pantallas Apple/Retina */
+  -webkit-font-smoothing: antialiased; 
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Scroll suave al navegar entre secciones (#id) */
+  scroll-behavior: smooth;
 }
 
 #root {
-  /* CAMBIO AQUÍ: Quita height: 100% */
   width: 100%;
-
+  min-height: 100vh;
+  isolation: isolate; /* Crea un contexto de apilamiento nuevo (evita bugs de z-index raros) */
 }
 
+/* 4. SCROLLBAR PERSONALIZADO (El detalle de lujo) */
+/* Esto hace que la barra lateral no sea la gris fea de Windows/Chrome */
+
+::-webkit-scrollbar {
+  width: 10px; /* Ancho elegante */
+}
+
+::-webkit-scrollbar-track {
+  background: #050505; /* El fondo de la barra es del mismo color que tu web */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #333; /* La barra en sí es gris oscuro */
+  border-radius: 9999px; /* Redondita */
+  border: 2px solid #050505; /* Borde interno para efecto "flotante" */
+}
+
+/* Cuando pasas el mouse por la barra, se pone NARANJA QUALTOP */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #FF4D00; 
+}
+
+/* 5. SELECCIÓN DE TEXTO (Branding total) */
+/* Cuando el usuario selecciona texto, se ve naranja en vez de azul aburrido */
+::selection {
+  background-color: #FF4D00;
+  color: #ffffff;
+}

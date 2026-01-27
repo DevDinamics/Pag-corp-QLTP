@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import FullScreenMenu from './FullScreenMenu';
 
-// --- COMPONENTE: HAMBURGUESA PERSONALIZADA ---
+// --- COMPONENTE: HAMBURGUESA ---
 const CustomHamburger = ({ onClick, className }) => (
-  <button onClick={onClick} className={`group flex flex-col items-end gap-[6px] p-2 hover:opacity-80 transition-opacity ${className}`}>
-    <span className="w-8 h-[2px] bg-white transition-all duration-300 group-hover:bg-qualtop-orange group-hover:w-10" />
-    <span className="w-5 h-[2px] bg-white transition-all duration-300 group-hover:bg-qualtop-orange group-hover:w-8" />
+  <button onClick={onClick} className={`group flex flex-col items-end gap-[5px] p-2 hover:opacity-80 transition-opacity ${className}`}>
+    <span className="w-6 h-[2px] bg-white transition-all duration-300 group-hover:bg-qualtop-orange group-hover:w-8" />
+    <span className="w-4 h-[2px] bg-white transition-all duration-300 group-hover:bg-qualtop-orange group-hover:w-6" />
   </button>
 );
 
@@ -16,9 +16,8 @@ const CustomHamburger = ({ onClick, className }) => (
 const SearchOverlay = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState("");
   const inputRef = useRef(null);
-  const navigate = useNavigate(); // 1. Importamos el hook de navegación
+  const navigate = useNavigate();
 
-  // Enfocar el input cuando se abre
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -30,17 +29,8 @@ const SearchOverlay = ({ isOpen, onClose }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    
-    // 2. Validación: Si está vacío, no hace nada
     if (!query.trim()) return;
-
-    console.log("Navegando a búsqueda:", query);
-    
-    // 3. ACCIÓN REAL: Redirigir al Blog con el parámetro de búsqueda
-    // Esto cambiará la URL a: /blog?q=termino_buscado
     navigate(`/blog?q=${encodeURIComponent(query)}`);
-    
-    // 4. Limpieza
     setQuery("");
     onClose();
   };
@@ -52,13 +42,11 @@ const SearchOverlay = ({ isOpen, onClose }) => {
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center"
+          className="fixed inset-0 z-[200] bg-[#050505]/95 backdrop-blur-xl flex items-center justify-center"
         >
-          {/* Botón Cerrar */}
           <button onClick={onClose} className="absolute top-8 right-8 text-gray-400 hover:text-white transition-colors">
             <X size={32} />
           </button>
-
           <div className="w-full max-w-3xl px-6">
             <form onSubmit={handleSearch} className="relative group">
               <input 
@@ -66,18 +54,13 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                 type="text" 
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="¿Qué estás buscando?" 
-                className="w-full bg-transparent border-b-2 border-white/20 text-3xl md:text-5xl text-white py-4 focus:outline-none focus:border-qualtop-orange transition-colors placeholder:text-gray-600 font-bold"
+                placeholder="Busca en Qualtop..." 
+                className="w-full bg-transparent border-b-2 border-white/20 text-3xl md:text-5xl text-white py-4 focus:outline-none focus:border-qualtop-orange transition-colors placeholder:text-gray-700 font-bold"
               />
-              {/* Botón Flecha (Ahora sí envía el formulario) */}
-              <button 
-                type="submit" 
-                className={`absolute right-0 bottom-4 text-qualtop-orange transition-all duration-300 ${query.trim() ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}
-              >
+              <button type="submit" className={`absolute right-0 bottom-4 text-qualtop-orange transition-all duration-300 ${query.trim() ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
                 <ArrowRight size={32} />
               </button>
             </form>
-            <p className="mt-4 text-gray-500 text-sm tracking-widest uppercase">Presiona Enter para buscar</p>
           </div>
         </motion.div>
       )}
@@ -95,8 +78,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPos = window.scrollY;
-      setIsScrolled(scrollPos > 20);
+      // Cambiamos el estado después de 50px de scroll para evitar parpadeos al inicio
+      setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -118,34 +101,53 @@ export default function Navbar() {
 
   return (
     <>
+      {/* --- LOGICA DE ESTILOS DE LA ISLA ---
+         isScrolled (Bajando):
+           - bg-[#050505]: Sólido oscuro (sin transparencia).
+           - border-white/10: Borde sutil.
+           - py-2: Más compacto.
+           - shadow-2xl: Sombra fuerte para flotar.
+         
+         !isScrolled (Arriba/Top):
+           - bg-transparent: Totalmente transparente (o bg-black/10 muy sutil).
+           - border-transparent: Sin bordes.
+           - shadow-none: Sin sombra.
+           - py-4: Más espacioso.
+      */}
       <nav 
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-out
-        ${menuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'} 
-        ${isScrolled ? 'bg-black/80 backdrop-blur-lg py-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]' : 'bg-transparent py-6'}`}
+        className={`fixed left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)]
+        w-[95%] md:max-w-7xl rounded-full
+        ${menuOpen ? 'opacity-0 pointer-events-none -top-10' : 'opacity-100'} 
+        ${isScrolled 
+            ? 'top-4 bg-[#050505] border border-white/10 shadow-2xl py-2 md:py-3' 
+            : 'top-6 bg-transparent border border-transparent shadow-none py-3 md:py-5 backdrop-blur-none'
+        }`}
       >
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <div className="w-full px-5 md:px-8 flex items-center justify-between">
           
-          <div className="flex items-center cursor-pointer group z-50">
+          {/* LOGO */}
+          <div className="flex items-center cursor-pointer group z-50 shrink-0">
             <Link to="/">
-              <div className={`relative transition-all duration-500 ${isScrolled ? 'w-24' : 'w-28 md:w-32'}`}>
+              <div className="relative w-24 md:w-28 transition-all duration-500">
                 <img 
                   src="https://qualtop.com/wp-content/uploads/2025/09/Q_Logo.svg" 
                   alt="Qualtop Logo" 
-                  className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500" 
+                  className="w-full h-auto object-contain group-hover:brightness-125 transition-all duration-500" 
                 />
               </div>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-8 lg:gap-12" onMouseLeave={() => setActiveDropdown(null)}>
+          {/* MENÚ DESKTOP */}
+          <div className="hidden md:flex items-center gap-8" onMouseLeave={() => setActiveDropdown(null)}>
             {navItems.map((item, index) => {
               const isActive = location.pathname === item.href;
 
               return (
-                <div key={index} className="relative h-full flex items-center py-2" onMouseEnter={() => item.hasDropdown && setActiveDropdown(index)}>
+                <div key={index} className="relative h-full flex items-center" onMouseEnter={() => item.hasDropdown && setActiveDropdown(index)}>
                   <Link 
                     to={item.href} 
-                    className={`relative flex items-center gap-1 text-sm font-medium transition-all duration-300 tracking-wide 
+                    className={`relative flex items-center gap-1 text-sm font-medium transition-all duration-300 tracking-wide px-2 py-2
                     ${activeDropdown === index || isActive ? 'text-qualtop-orange' : 'text-gray-300 hover:text-white'}`}
                   >
                     {item.title}
@@ -155,42 +157,36 @@ export default function Navbar() {
                         className={`transition-transform duration-300 ${activeDropdown === index ? 'rotate-180 text-qualtop-orange' : ''}`} 
                       />
                     )}
-                    
-                    {isActive && (
-                      <motion.div 
-                        layoutId="navIndicator" 
-                        className="absolute -bottom-1 left-0 w-full h-[2px] bg-qualtop-orange" 
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      />
-                    )}
                   </Link>
 
+                  {/* DROPDOWN (Siempre sólido para legibilidad) */}
                   <AnimatePresence>
                     {item.hasDropdown && activeDropdown === index && (
                       <motion.div 
-                        initial={{ opacity: 0, y: 15, scale: 0.95 }} 
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }} 
                         animate={{ opacity: 1, y: 0, scale: 1 }} 
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }} 
+                        exit={{ opacity: 0, y: 15, scale: 0.95 }} 
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-1/2 -translate-x-1/2 pt-6 w-[360px]"
+                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[340px]"
                       >
-                        <div className="bg-[#0f0f0f] border border-white/10 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/5">
-                           <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-1.5 w-3 h-3 bg-[#0f0f0f] border-t border-l border-white/10 rotate-45"></div>
+                        <div className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl p-2 relative">
+                           {/* Triángulo decorativo */}
+                           <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#111] border-t border-l border-white/10 rotate-45"></div>
                           
-                          <div className="p-2 flex flex-col gap-1 relative z-10">
+                          <div className="flex flex-col gap-1 relative z-10">
                             {item.dropdownItems.map((sub, i) => (
                               <Link 
                                 key={i} 
                                 to={sub.href} 
                                 onClick={() => setActiveDropdown(null)}
-                                className="group flex items-start gap-4 p-4 rounded-lg hover:bg-white/[0.03] transition-all"
+                                className="group flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-all"
                               >
-                                <div className="p-2.5 rounded-lg bg-white/5 text-gray-400 group-hover:bg-qualtop-orange/20 group-hover:text-qualtop-orange transition-colors">
+                                <div className="p-2 rounded-lg bg-white/5 text-gray-400 group-hover:bg-qualtop-orange/20 group-hover:text-qualtop-orange transition-colors">
                                   {sub.icon}
                                 </div>
                                 <div>
-                                  <div className="text-sm font-bold text-gray-200 group-hover:text-white mb-0.5">{sub.label}</div>
-                                  <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">{sub.desc}</p>
+                                  <div className="text-sm font-bold text-gray-200 group-hover:text-white">{sub.label}</div>
+                                  <p className="text-[11px] text-gray-500 group-hover:text-gray-400">{sub.desc}</p>
                                 </div>
                               </Link>
                             ))}
@@ -204,14 +200,22 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="flex items-center gap-4 md:gap-6">
+          {/* ACCIONES DERECHA */}
+          <div className="flex items-center gap-3 md:gap-5">
+            {/* Botón Desktop */}
             <button 
                 onClick={() => navigate('/contact-home')}
-                className="hidden lg:block bg-qualtop-orange hover:bg-orange-600 text-white font-bold py-3 px-7 rounded-lg transition-all text-[11px] tracking-[0.15em] uppercase hover:shadow-[0_0_20px_rgba(255,77,0,0.4)] active:scale-95"
+                className={`hidden lg:block font-bold py-2.5 px-6 rounded-full transition-all text-xs tracking-wider active:scale-95
+                  ${isScrolled 
+                    ? 'bg-white text-black hover:bg-qualtop-orange hover:text-white' // Botón normal en scroll
+                    : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white hover:text-black' // Botón cristal arriba
+                  }`}
             >
-                Contáctanos
+                CONTACTO
             </button>
             
+            <div className={`h-6 w-[1px] hidden md:block transition-colors ${isScrolled ? 'bg-white/10' : 'bg-white/20'}`}></div>
+
             <button 
               onClick={() => setSearchOpen(true)}
               className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
@@ -220,7 +224,7 @@ export default function Navbar() {
               <Search size={20} />
             </button>
             
-            <CustomHamburger onClick={() => setMenuOpen(true)} className="ml-1" />
+            <CustomHamburger onClick={() => setMenuOpen(true)} />
           </div>
         </div>
       </nav>

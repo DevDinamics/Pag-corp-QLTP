@@ -1,133 +1,100 @@
 import React from 'react';
-import { motion } from 'framer-motion'; // Importamos motion
+import { motion } from 'framer-motion';
 import { ShieldCheck, LineChart, Clock, Zap } from 'lucide-react';
 
 const benefits = [
   {
     id: 1,
     title: "Reducción de Riesgos",
-    description: "Minimiza puntos únicos de fallo y vulnerabilidades en sistemas legacy.",
-    icon: <ShieldCheck size={28} />,
+    tagline: "SEGURIDAD BLINDADA",
+    description: "Eliminamos vulnerabilidades críticas en sistemas legacy, asegurando operación continua.",
+    icon: <ShieldCheck size={40} />, 
   },
   {
     id: 2,
     title: "Eficiencia Operativa",
-    description: "Automatiza procesos manuales y reduce tiempos de respuesta.",
-    icon: <Clock size={28} />,
+    tagline: "VELOCIDAD PURA",
+    description: "Automatización inteligente que reduce tiempos de proceso de días a minutos.",
+    icon: <Clock size={40} />,
   },
   {
     id: 3,
     title: "Toma de Decisiones",
-    description: "Visibilidad en tiempo real para decisiones basadas en datos.",
-    icon: <LineChart size={28} />,
+    tagline: "DATA REAL",
+    description: "Transformamos terabytes de datos oscuros en estrategia de negocio clara y accionable.",
+    icon: <LineChart size={40} />,
   },
   {
     id: 4,
     title: "Innovación Acelerada",
-    description: "Libera recursos para enfocarse en nuevas iniciativas de negocio.",
-    icon: <Zap size={28} />,
+    tagline: "TIME-TO-MARKET",
+    description: "Desbloqueamos deuda técnica para lanzar nuevos productos hoy, no el próximo año.",
+    icon: <Zap size={40} />,
   }
 ];
 
-// --- VARIANTES DE ANIMACIÓN (Framer Motion) ---
-
-// Variante para el contenedor: controla el "stagger" (retraso en cascada)
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15, // Cada hijo aparecerá 0.15s después del anterior
-      delayChildren: 0.5,    // Retraso inicial antes de empezar
-    }
-  }
-};
-
-// Variante para cada tarjeta (Hijo)
-const item = {
-  hidden: { opacity: 0, y: 50, scale: 0.9 }, // Empieza más abajo y pequeño
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: { 
-      type: "spring", // Tipo de física
-      stiffness: 100, // Rigidez del resorte
-      damping: 15,    // Amortiguación (para que no rebote demasiado)
-      duration: 0.6
-    } 
-  }
-};
-
 export default function BenefitsSection() {
   return (
-    <section className="relative w-full bg-[#050505] py-32 px-6 border-t border-white/5 overflow-hidden">
+    <section className="relative w-full bg-[#050505] py-24 px-6 overflow-hidden">
       
-      {/* Fondo decorativo sutil */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-qualtop-orange/5 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-
       <div className="max-w-7xl mx-auto relative z-10">
         
-        {/* HEADER DE SECCIÓN ANIMADO */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="text-center mb-20"
-        >
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                Diseñamos soluciones que llegan a producción en entornos  <br className="hidden md:block"/>
-                <span className="text-transparent bg-clip-text bg-qualtop-orange ">
-                    reales y complejos.
-                </span>
-            </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-                Más allá de la tecnología, entregamos impacto medible en los indicadores clave del negocio.
-            </p>
-        </motion.div>
+        {/* --- HEADER CENTRADO (Como en la imagen) --- */}
+        <div className="text-center mb-24 max-w-4xl mx-auto">
+           <motion.h2 
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight"
+           >
+             Diseñamos soluciones que llegan a producción <br className="hidden md:block"/>
+             en entornos <span className="text-gray-400">reales y complejos.</span>
+           </motion.h2>
+        </div>
 
-        {/* --- GRID DE BENEFICIOS CON ANIMACIÓN STAGGER --- */}
-        <motion.div 
-          variants={container} // Aplicamos las variantes del contenedor
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-        >
-          {benefits.map((benefit) => (
-            <motion.div
-              key={benefit.id}
-              variants={item} // Aplicamos las variantes del ítem
-              // Animación al hacer HOVER en la tarjeta
-              whileHover={{ 
-                scale: 1.03, // Crece ligeramente
-                transition: { duration: 0.2 }
-              }}
-              className="group relative p-8 rounded-2xl bg-[#0a0a0a] border border-white/10 overflow-hidden transition-all duration-300 hover:border-qualtop-orange/50 hover:shadow-[0_10px_40px_-10px_rgba(255,77,0,0.2)]"
+        {/* --- GRID CON DIVISORES VERTICALES --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+          {benefits.map((item, index) => (
+            <motion.div 
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className={`
+                  relative px-6 py-8 md:py-0 group
+                  /* Lógica de Bordes: */
+                  /* En Desktop (lg): Borde a la izquierda, excepto el primero */
+                  ${index !== 0 ? 'lg:border-l lg:border-qualtop-orange' : ''}
+                  /* En Tablet (md): Borde a la izquierda en los pares (2 y 4) */
+                  ${index % 2 !== 0 ? 'md:border-l md:border-qualtop-orange lg:border-l-0' : ''}
+                  /* En Móvil: Borde arriba excepto el primero (para separar verticalmente) */
+                  ${index !== 0 ? 'border-t border-qualtop-orange/30 md:border-t-0' : ''}
+                `}
             >
-              
-              {/* Degradado de fondo que aparece al hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-qualtop-orange/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                {/* Icono */}
+                <div className="mb-6 text-white group-hover:text-qualtop-orange transition-colors duration-300">
+                    {item.icon}
+                </div>
 
-              <div className="relative z-10 flex flex-col h-full">
-                {/* Contenedor del Icono */}
-                <div className="mb-6 p-4 rounded-xl bg-white/5 text-qualtop-orange w-fit border border-white/5 transition-all duration-300 group-hover:bg-qualtop-orange/20 group-hover:border-qualtop-orange/30 group-hover:scale-110 group-hover:-rotate-3">
-                  {benefit.icon}
-                </div>
-                
+                {/* Texto Destacado (Tagline) */}
+                <h4 className="text-lg md:text-xl font-bold text-qualtop-orange mb-3">
+                    {item.tagline}
+                </h4>
+
+                {/* Título y Descripción */}
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-3 transition-colors group-hover:text-qualtop-orange">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors">
-                    {benefit.description}
-                  </p>
+                   <h3 className="text-white font-bold text-lg mb-2 hidden">
+                     {item.title} {/* Oculto visualmente si prefieres solo el tagline como en la foto, o puedes descomentarlo */}
+                   </h3>
+                   <p className="text-gray-400 leading-relaxed text-sm md:text-base">
+                     {item.description}
+                   </p>
                 </div>
-              </div>
+
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
       </div>
     </section>
