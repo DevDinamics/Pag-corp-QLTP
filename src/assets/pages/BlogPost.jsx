@@ -213,7 +213,7 @@ export default function BlogPost() {
             </div>
 
             {/* TÍTULO AJUSTADO: Más controlado y estético */}
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white tracking-tighter leading-[1.1] mb-6 max-w-4xl">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white tracking-normal leading-[1.2] mb-6 max-w-4xl">
                 {post.title}
             </h1>
 
