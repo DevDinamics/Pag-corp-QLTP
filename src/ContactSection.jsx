@@ -4,14 +4,13 @@ import { Send, CheckCircle2, Mail, Phone, Loader2, AlertCircle } from 'lucide-re
 import emailjs from '@emailjs/browser';
 
 // --- CONFIGURACIÓN EMAILJS ---
-// Lo ideal es mover esto a un archivo .env (ej: import.meta.env.VITE_EMAILJS_SERVICE_ID)
 const EMAIL_CONFIG = {
   SERVICE_ID: 'service_0t7rujq',
   TEMPLATE_ID: 'template_hx9719f',
   PUBLIC_KEY: 'OlKg1l5iedr6UKUvd',
 };
 
-// --- INPUT REUTILIZABLE ---
+// --- INPUT GLASS ---
 const InputGroup = ({ label, name, type = "text", placeholder, required = false, isTextArea = false }) => {
   return (
     <div className="group relative">
@@ -20,7 +19,8 @@ const InputGroup = ({ label, name, type = "text", placeholder, required = false,
           name={name}
           required={required}
           placeholder=" " 
-          className="peer w-full bg-[#111] text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange transition-all duration-300 min-h-[120px] resize-none text-base font-light placeholder-transparent"
+          // CAMBIO: bg-white/5 para efecto cristal interno
+          className="peer w-full bg-white/5 text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:bg-white/10 transition-all duration-300 min-h-[120px] resize-none text-base font-light placeholder-transparent backdrop-blur-sm"
         />
       ) : (
         <input 
@@ -28,10 +28,11 @@ const InputGroup = ({ label, name, type = "text", placeholder, required = false,
           name={name}
           required={required}
           placeholder=" "
-          className="peer w-full bg-[#111] text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange transition-all duration-300 text-base font-light placeholder-transparent"
+          // CAMBIO: bg-white/5
+          className="peer w-full bg-white/5 text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:bg-white/10 transition-all duration-300 text-base font-light placeholder-transparent backdrop-blur-sm"
         />
       )}
-      <label className="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-300 pointer-events-none 
+      <label className="absolute left-4 top-4 text-gray-400 text-sm transition-all duration-300 pointer-events-none 
         peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
         peer-focus:top-2 peer-focus:text-xs peer-focus:text-qualtop-orange
         peer-valid:top-2 peer-valid:text-xs peer-valid:text-gray-400">
@@ -41,17 +42,19 @@ const InputGroup = ({ label, name, type = "text", placeholder, required = false,
   );
 };
 
-// --- SELECT REUTILIZABLE ---
+// --- SELECT GLASS ---
 const SelectGroup = ({ label, name, options, required = false }) => (
   <div className="group relative">
     <select 
       name={name}
       required={required}
-      defaultValue="" // Fix para React warning
-      className="peer w-full bg-[#111] text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange transition-all duration-300 appearance-none cursor-pointer text-base font-light"
+      defaultValue=""
+      // CAMBIO: bg-white/5 (Nota: las opciones <option> siempre son sólidas en HTML estándar)
+      className="peer w-full bg-white/5 text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:bg-white/10 transition-all duration-300 appearance-none cursor-pointer text-base font-light backdrop-blur-sm"
     >
       <option value="" disabled className="text-gray-500"></option>
-      {options.map((opt, i) => <option key={i} value={opt} className="bg-[#111] text-white">{opt}</option>)}
+      {/* Fondo sólido negro para las opciones, ya que el glass no funciona dentro del dropdown nativo */}
+      {options.map((opt, i) => <option key={i} value={opt} className="bg-[#111] text-white py-2">{opt}</option>)}
     </select>
     <label className="absolute left-4 top-1 text-xs text-gray-400 transition-all duration-300 pointer-events-none">
       {label} {required && <span className="text-qualtop-orange">*</span>}
@@ -91,8 +94,14 @@ export default function ContactSection() {
   return (
     <section id="contacto" className="relative w-full bg-[#050505] py-16 md:py-24 px-4 md:px-6 overflow-hidden border-t border-white/5 scroll-mt-20">
       
-      {/* Fondo decorativo */}
-      <div className="absolute bottom-0 left-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-qualtop-orange/10 blur-[100px] md:blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-50"></div>
+      {/* FONDO DECORATIVO (Importante para que el Glass se note) */}
+      {/* Orbe Naranja */}
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-qualtop-orange/20 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-40 translate-x-1/3 translate-y-1/3"></div>
+      {/* Orbe Azul (Para contraste frío) */}
+      <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen opacity-30"></div>
+      {/* Ruido para textura */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start relative z-10">
         
@@ -104,7 +113,7 @@ export default function ContactSection() {
           transition={{ duration: 0.6 }}
           className="relative lg:sticky lg:top-32"
         >
-          <span className="inline-block px-3 py-1 mb-4 md:mb-6 text-[10px] md:text-xs font-bold tracking-widest text-qualtop-orange uppercase border border-qualtop-orange/30 rounded-full bg-qualtop-orange/5">
+          <span className="inline-block px-3 py-1 mb-4 md:mb-6 text-[10px] md:text-xs font-bold tracking-widest text-qualtop-orange uppercase border border-qualtop-orange/30 rounded-full bg-qualtop-orange/5 backdrop-blur-md">
             Hablemos Claro
           </span>
           
@@ -116,10 +125,9 @@ export default function ContactSection() {
             Sin vendedores agresivos. Solo ingenieros y consultores analizando si tu contexto técnico y operativo hace match con nuestras soluciones.
           </p>
 
-          {/* Datos de contacto */}
           <div className="space-y-6 border-t border-white/10 pt-8">
             <a href="mailto:hola@qualtop.com" className="flex items-center gap-4 group w-fit">
-               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-qualtop-orange group-hover:text-white text-gray-400 transition-all duration-300">
+               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-qualtop-orange group-hover:text-white text-gray-400 transition-all duration-300 border border-white/5">
                  <Mail size={20} />
                </div>
                <div>
@@ -129,7 +137,7 @@ export default function ContactSection() {
             </a>
             
             <a href="tel:+525512345678" className="flex items-center gap-4 group w-fit">
-               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-qualtop-orange group-hover:text-white text-gray-400 transition-all duration-300">
+               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-qualtop-orange group-hover:text-white text-gray-400 transition-all duration-300 border border-white/5">
                  <Phone size={20} />
                </div>
                <div>
@@ -141,7 +149,7 @@ export default function ContactSection() {
         </motion.div>
 
 
-        {/* --- COLUMNA DERECHA: FORMULARIO --- */}
+        {/* --- COLUMNA DERECHA: FORMULARIO GLASS --- */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -149,12 +157,21 @@ export default function ContactSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="relative w-full"
         >
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden group">
+          {/* MAGIA DEL GLASSMORPHISM AQUÍ:
+              - bg-white/[0.03]: Fondo blanco muy transparente (3%).
+              - backdrop-blur-xl: Desenfoca fuertemente lo de atrás.
+              - border-white/10: Borde sutil.
+              - shadow-2xl: Sombra profunda para "flotar".
+          */}
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] relative overflow-hidden group">
              
-             {/* Línea naranja decorativa superior */}
-             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-qualtop-orange to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+             {/* Reflejo superior (Luz de borde) */}
+             <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
 
-             <form ref={form} onSubmit={sendEmail} className="space-y-5">
+             {/* Línea naranja decorativa */}
+             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-qualtop-orange to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+             <form ref={form} onSubmit={sendEmail} className="space-y-5 relative z-10">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <InputGroup name="user_name" label="Nombre completo" required />
@@ -173,25 +190,23 @@ export default function ContactSection() {
                 
                 <InputGroup name="message" label="¿Cómo podemos ayudarte?" isTextArea required />
 
-                {/* Checkbox */}
                 <div className="flex items-start gap-3 mt-2">
                   <div className="relative flex items-center mt-1">
-                    <input type="checkbox" required id="privacy" className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-white/20 bg-[#111] checked:border-qualtop-orange checked:bg-qualtop-orange transition-all" />
-                    <CheckCircle2 size={12} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 peer-checked:opacity-100 transition-opacity" />
+                    <input type="checkbox" required id="privacy" className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-white/20 bg-white/5 checked:border-qualtop-orange checked:bg-qualtop-orange transition-all" />
+                    <CheckCircle2 size={12} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                   </div>
                   <label htmlFor="privacy" className="text-xs text-gray-500 leading-relaxed cursor-pointer select-none">
                     He leído y acepto la <a href="#" className="text-gray-400 hover:text-qualtop-orange underline transition-colors">Política de Privacidad</a>.
                   </label>
                 </div>
 
-                {/* Botón */}
                 <button 
                   type="submit" 
                   disabled={formState === 'loading' || formState === 'success'}
-                  className={`w-full group relative flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-sm tracking-widest uppercase transition-all duration-300 transform active:scale-[0.98]
-                    ${formState === 'success' ? 'bg-green-600 text-white cursor-default' : 
-                      formState === 'error' ? 'bg-red-600 text-white' :
-                      'bg-qualtop-orange hover:bg-[#ff5e1a] text-white shadow-lg shadow-qualtop-orange/20'}
+                  className={`w-full group relative flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-sm tracking-widest uppercase transition-all duration-300 transform active:scale-[0.98] border border-transparent
+                    ${formState === 'success' ? 'bg-green-600/90 text-white cursor-default backdrop-blur-md' : 
+                      formState === 'error' ? 'bg-red-600/90 text-white backdrop-blur-md' :
+                      'bg-qualtop-orange hover:bg-[#ff5e1a] text-white shadow-[0_0_20px_rgba(255,77,0,0.3)] hover:shadow-[0_0_30px_rgba(255,77,0,0.5)]'}
                   `}
                 >
                   {formState === 'idle' && (

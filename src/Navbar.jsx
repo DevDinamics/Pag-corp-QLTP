@@ -42,7 +42,8 @@ const SearchOverlay = ({ isOpen, onClose }) => {
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] bg-[#050505]/95 backdrop-blur-xl flex items-center justify-center"
+          // Glass oscuro intenso para el buscador
+          className="fixed inset-0 z-[200] bg-[#050505]/90 backdrop-blur-xl flex items-center justify-center"
         >
           <button onClick={onClose} className="absolute top-8 right-8 text-gray-400 hover:text-white transition-colors">
             <X size={32} />
@@ -78,7 +79,6 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Cambiamos el estado después de 50px de scroll para evitar parpadeos al inicio
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -101,25 +101,16 @@ export default function Navbar() {
 
   return (
     <>
-      {/* --- LOGICA DE ESTILOS DE LA ISLA ---
-         isScrolled (Bajando):
-           - bg-[#050505]: Sólido oscuro (sin transparencia).
-           - border-white/10: Borde sutil.
-           - py-2: Más compacto.
-           - shadow-2xl: Sombra fuerte para flotar.
-         
-         !isScrolled (Arriba/Top):
-           - bg-transparent: Totalmente transparente (o bg-black/10 muy sutil).
-           - border-transparent: Sin bordes.
-           - shadow-none: Sin sombra.
-           - py-4: Más espacioso.
+      {/* NAVBAR GLASS DARK PRO 
+         - Top: Transparente (para ver el fondo 3D limpio).
+         - Scrolled: Fondo negro al 70% + Blur fuerte (Efecto Vidrio Ahumado).
       */}
       <nav 
         className={`fixed left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)]
         w-[95%] md:max-w-7xl rounded-full
         ${menuOpen ? 'opacity-0 pointer-events-none -top-10' : 'opacity-100'} 
         ${isScrolled 
-            ? 'top-4 bg-[#050505] border border-white/10 shadow-2xl py-2 md:py-3' 
+            ? 'top-4 bg-[#050505]/70 backdrop-blur-lg border border-white/10 shadow-lg shadow-black/50 py-2 md:py-3' 
             : 'top-6 bg-transparent border border-transparent shadow-none py-3 md:py-5 backdrop-blur-none'
         }`}
       >
@@ -159,7 +150,7 @@ export default function Navbar() {
                     )}
                   </Link>
 
-                  {/* DROPDOWN (Siempre sólido para legibilidad) */}
+                  {/* DROPDOWN (Glass Dark) */}
                   <AnimatePresence>
                     {item.hasDropdown && activeDropdown === index && (
                       <motion.div 
@@ -169,9 +160,10 @@ export default function Navbar() {
                         transition={{ duration: 0.2 }}
                         className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[340px]"
                       >
-                        <div className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl p-2 relative">
+                        {/* Fondo semi-transparente con blur */}
+                        <div className="bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl p-2 relative">
                            {/* Triángulo decorativo */}
-                           <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#111] border-t border-l border-white/10 rotate-45"></div>
+                           <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0a0a0a] border-t border-l border-white/10 rotate-45"></div>
                           
                           <div className="flex flex-col gap-1 relative z-10">
                             {item.dropdownItems.map((sub, i) => (
@@ -207,7 +199,7 @@ export default function Navbar() {
                 onClick={() => navigate('/contact-home')}
                 className={`hidden lg:block font-bold py-2.5 px-6 rounded-full transition-all text-xs tracking-wider active:scale-95
                   ${isScrolled 
-                    ? 'bg-white text-black hover:bg-qualtop-orange hover:text-white' // Botón normal en scroll
+                    ? 'bg-white text-black hover:bg-qualtop-orange hover:text-white' // Botón sólido al bajar
                     : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white hover:text-black' // Botón cristal arriba
                   }`}
             >

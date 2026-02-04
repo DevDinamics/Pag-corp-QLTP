@@ -18,24 +18,24 @@ export default function WhatDrivesUs() {
   ];
 
   return (
-    <section className="bg-black py-20 md:py-32 px-4 md:px-6 relative font-sans">
+    <section className="bg-[#050505] py-20 md:py-32 px-4 md:px-6 relative font-sans">
       
-      {/* Fondo Decorativo: Línea central sutil */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-white/5 to-transparent pointer-events-none hidden md:block" />
+      {/* Textura de ruido sutil para dar sensación de material (madera/piedra) */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 border-b border-white/10 pb-8">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 pb-8 border-b border-white/5">
           <motion.div 
              initial={{ opacity: 0, x: -20 }}
              whileInView={{ opacity: 1, x: 0 }}
              viewport={{ once: true }}
           >
             <div className="flex items-center gap-3 mb-3">
-               <div className="w-1.5 h-1.5 bg-qualtop-orange rounded-full animate-pulse" />
+               <div className="w-1.5 h-1.5 bg-qualtop-orange rounded-full shadow-[0_0_10px_#FF4D00]" />
                <span className="text-gray-500 text-xs font-mono tracking-widest uppercase">
-                 [ 8 Pilares Fundamentales ]
+                 [ Nuestros Pilares ]
                </span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tighter">
@@ -44,57 +44,62 @@ export default function WhatDrivesUs() {
           </motion.div>
         </div>
 
-        {/* GRID TÉCNICO PRO */}
-        {/* La magia: Border-t y Border-l en el contenedor padre */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/10">
+        {/* GRID DE "BLOQUES TALLADOS" */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           
           {cards.map((card, index) => (
             <motion.div
-              key={card.id}
+              key={card.id} // Usamos ID para key, pero no lo mostramos
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05, duration: 0.5 }}
               className="
                 group relative 
-                /* Bordes hijos: Derecha y Abajo */
-                border-r border-b border-white/10 
-                bg-black 
-                /* Interacciones */
-                hover:bg-white/[0.03] active:bg-white/[0.05]
-                transition-all duration-300 
-                p-6 md:p-8 
+                bg-[#0a0a0a] 
+                rounded-2xl 
+                p-8 
                 flex flex-col justify-between
-                min-h-[220px] md:min-h-[280px]
+                min-h-[260px]
+                transition-all duration-300
+                
+                /* EFECTO TALLADO / BISELADO (La clave del efecto) */
+                /* 1. Sombra exterior suave para elevar el bloque */
+                shadow-[10px_10px_20px_#000000,-5px_-5px_15px_rgba(255,255,255,0.03)]
+                /* 2. Borde sutil: Luz arriba/izq, Sombra abajo/der */
+                border-t border-l border-white/5 border-b border-r border-black
+                
+                /* Hover: El bloque se levanta un poco más */
+                hover:-translate-y-1 hover:shadow-[15px_15px_30px_#000000,-5px_-5px_15px_rgba(255,255,255,0.05)]
               "
             >
               
-              {/* 1. Header de la Tarjeta (Icono + ID) */}
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-2 rounded-lg bg-white/5 text-gray-400 group-hover:text-white group-hover:bg-qualtop-orange transition-all duration-300">
-                  <card.icon size={22} />
+              {/* 1. Header: Icono "Hundido" (Inset) */}
+              <div className="mb-6">
+                <div className="
+                   w-14 h-14 rounded-xl flex items-center justify-center 
+                   text-gray-400 group-hover:text-qualtop-orange transition-colors duration-300
+                   
+                   /* EFECTO HUNDIDO (Inset Shadow) */
+                   bg-[#080808]
+                   shadow-[inset_3px_3px_6px_#000000,inset_-1px_-1px_2px_rgba(255,255,255,0.1)]
+                ">
+                  <card.icon size={24} strokeWidth={1.5} />
                 </div>
-                {/* ID estilo técnico */}
-                <span className="text-[10px] font-mono text-white/20 group-hover:text-qualtop-orange transition-colors">
-                  {card.id}
-                </span>
               </div>
 
               {/* 2. Contenido */}
               <div className="relative z-10">
-                 <h3 className="text-lg font-bold text-white mb-3 tracking-wide group-hover:translate-x-1 transition-transform duration-300">
+                 <h3 className="text-xl font-bold text-gray-200 mb-3 tracking-tight group-hover:text-white transition-colors">
                     {card.title}
                  </h3>
-                 <p className="text-sm text-gray-400 font-light leading-relaxed group-hover:text-gray-300 transition-colors">
+                 <p className="text-sm text-gray-500 font-light leading-relaxed group-hover:text-gray-400 transition-colors">
                    {card.text}
                  </p>
               </div>
 
-              {/* 3. Decoración Hover (Barra inferior) */}
-              <div className="absolute bottom-0 left-0 h-[2px] bg-qualtop-orange w-0 group-hover:w-full transition-all duration-500" />
-              
-              {/* 4. Glow sutil en hover */}
-              <div className="absolute inset-0 bg-qualtop-orange/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              {/* 3. Detalle: Borde brillante al hover */}
+              <div className="absolute inset-0 rounded-2xl border border-qualtop-orange/0 group-hover:border-qualtop-orange/20 transition-all duration-500 pointer-events-none" />
 
             </motion.div>
           ))}

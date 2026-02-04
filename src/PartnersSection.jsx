@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 
 // --- DATOS DE PARTNERS ---
 const partners = [
@@ -12,151 +12,112 @@ const partners = [
   { name: "ISTQB", logo: "https://qualtop.com/wp-content/uploads/2025/11/istqb1.png", width: "w-28", brandColor: "#005b96" }
 ];
 
-export default function PartnersSection() {
+// Duplicamos x4 para asegurar el loop infinito suave
+const marqueePartners = [...partners, ...partners, ...partners, ...partners];
+
+export default function PartnersCarousel() {
   return (
-    <section className="relative w-full bg-[#050505] py-40 overflow-hidden">
+    <section className="relative w-full bg-[#050505] py-24 overflow-hidden border-t border-white/5">
       
-      {/* 1. FONDO CON TEXTURA "NOISE" (Da sensación de material premium) */}
-      <div className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-overlay"
-           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` }}>
-      </div>
+      {/* 1. AMBIENTE */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-qualtop-orange/5 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* 2. LUCES AMBIENTALES FLOTANTES */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-qualtop-orange/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="relative z-10 w-full">
         
-        {/* ENCABEZADO MINIMALISTA */}
-        <div className="text-center mb-24">
-
-          
+        {/* HEADER */}
+        <div className="text-center mb-16 px-6">
+          <motion.span 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            className="text-qualtop-orange text-xs font-bold tracking-[0.3em] uppercase mb-4 block"
+          >
+            Ecosistema
+          </motion.span>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-bold text-white tracking-tight"
+            className="text-3xl md:text-4xl font-bold text-white tracking-tight"
           >
-            Partners
+            Aliados Estratégicos
           </motion.h2>
         </div>
 
-        {/* GRID CENTRADO (Flex wrap para centrar la última tarjeta si es impar) */}
-        <div className="flex flex-wrap justify-center gap-6">
-          {partners.map((partner, index) => (
-            <LuxuryCard key={index} partner={partner} index={index} />
-          ))}
+        {/* --- CAROUSEL TRACK --- */}
+        <div className="relative w-full overflow-hidden py-10 group">
+            
+            {/* MÁSCARAS DE DEGRADADO (Fades laterales para que no se corten de golpe) */}
+            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#050505] to-transparent z-20 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#050505] to-transparent z-20 pointer-events-none" />
+
+            {/* TRACK DE MOVIMIENTO */}
+            {/* group-hover:pause -> Detiene todo el carrusel al poner el mouse encima */}
+            <div className="flex w-max animate-infinite-scroll group-hover:[animation-play-state:paused] items-center">
+                {marqueePartners.map((partner, index) => (
+                    <PartnerLogo key={index} partner={partner} />
+                ))}
+            </div>
+
         </div>
 
       </div>
+
+      {/* KEYFRAMES */}
+      <style>{`
+        @keyframes infinite-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        .animate-infinite-scroll {
+          animation: infinite-scroll 40s linear infinite;
+        }
+      `}</style>
     </section>
   );
 }
 
-// --- COMPONENTE DE LUJO: OBSIDIAN GLASS CARD ---
-const LuxuryCard = ({ partner, index }) => {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  // Física más "pesada" para sentir calidad (High Mass)
-  const mouseX = useSpring(x, { stiffness: 200, damping: 25 });
-  const mouseY = useSpring(y, { stiffness: 200, damping: 25 });
-
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["10deg", "-10deg"]); // Movimiento sutil
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-10deg", "10deg"]);
-
-  const [hovered, setHovered] = useState(false);
-  const cardRef = useRef(null);
-
-  function handleMouseMove(e) {
-    if (!cardRef.current) return;
-    const { left, top, width, height } = cardRef.current.getBoundingClientRect();
-    x.set((e.clientX - left) / width - 0.5);
-    y.set((e.clientY - top) / height - 0.5);
-  }
-
-  function handleMouseLeave() {
-    x.set(0);
-    y.set(0);
-    setHovered(false);
-  }
-
+// --- LOGO FLOTANTE SIN TARJETA ---
+const PartnerLogo = ({ partner }) => {
   return (
-    <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, scale: 0.9 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05, duration: 0.6 }}
-      style={{ perspective: 1000 }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      // Ancho fijo o flexible según necesites
-      className="relative h-44 w-full md:w-[calc(33%-1.5rem)] lg:w-[calc(25%-1.5rem)] min-w-[280px]"
-    >
-      <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="relative w-full h-full group"
-      >
-        
-        {/* --- 1. BASE DE CRISTAL OSCURO (Obsidian Base) --- */}
-        <div className="absolute inset-0 rounded-2xl bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/5 shadow-2xl transition-colors duration-500 group-hover:border-white/10 overflow-hidden">
+    // Espaciado generoso entre logos (mx-10 md:mx-16)
+    <div className="relative mx-10 md:mx-16 group/logo cursor-pointer py-4">
+      
+      {/* 1. BACKLIGHT (Luz trasera) 
+          Solo aparece en hover, usando el color de la marca. 
+          Al no tener tarjeta, esto crea un efecto de "halo" detrás del logo.
+      */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full opacity-0 group-hover/logo:opacity-40 transition-opacity duration-500 blur-[30px]"
+        style={{ backgroundColor: partner.brandColor }}
+      />
+
+      {/* 2. EL LOGO */}
+      <img 
+          src={partner.logo} 
+          alt={partner.name}
+          className={`
+            ${partner.width} h-auto object-contain transition-all duration-500 relative z-10
             
-            {/* Ruido sutil interno */}
-            <div className="absolute inset-0 opacity-[0.03] bg-repeat mix-blend-overlay" style={{ backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")` }} />
-
-            {/* --- 2. ILUMINACIÓN VOLUMÉTRICA (El color de la marca explota al fondo) --- */}
-            <div 
-                className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-700 ease-out"
-                style={{ 
-                    background: `radial-gradient(circle at center, ${partner.brandColor}, transparent 80%)`,
-                    filter: 'blur(40px)'
-                }}
-            />
+            /* ESTADO NORMAL (Fantasma): 
+               - Grayscale (blanco y negro)
+               - Brightness bajo (gris oscuro)
+               - Opacidad media (semi-invisible)
+            */
+            filter grayscale brightness-[0.5] opacity-40 contrast-[0.8]
             
-            {/* Spot de luz que sigue al mouse */}
-            <motion.div 
-               className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-               style={{
-                   background: useTransform(
-                       [mouseX, mouseY],
-                       ([xVal, yVal]) => `radial-gradient(
-                           600px circle at ${50 + xVal * 100}% ${50 + yVal * 100}%, 
-                           rgba(255,255,255,0.03), 
-                           transparent 40%
-                       )`
-                   )
-               }}
-            />
-        </div>
-
-        {/* --- 3. CONTENIDO FLOTANTE (Logo) --- */}
-        <div className="absolute inset-0 flex items-center justify-center p-8 z-20 transform-style-3d">
-            <motion.div 
-                style={{ transform: "translateZ(40px)" }} // Flota literalmente fuera de la tarjeta
-                className="relative"
-            >
-                <img 
-                    src={partner.logo} 
-                    alt={partner.name}
-                    className={`${partner.width} h-auto object-contain transition-all duration-500
-                    /* ESTADO NORMAL: Gris metálico plateado (Efecto Platino) */
-                    filter grayscale brightness-[0.7] contrast-[0.8] opacity-60
-                    /* ESTADO HOVER: Color original brillante */
-                    group-hover:filter-none group-hover:opacity-100 group-hover:scale-110 group-hover:drop-shadow-[0_0_15px_${partner.brandColor}40]`}
-                />
-            </motion.div>
-        </div>
-
-        {/* --- 4. REFLEJOS DE CRISTAL (Glass Glare) --- */}
-        {/* Borde superior brillante (Luz de estudio) */}
-        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
-        {/* Borde inferior suave */}
-        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-30" />
-
-      </motion.div>
-    </motion.div>
+            /* ESTADO HOVER (Encendido): 
+               - Full Color
+               - Brillo total
+               - Escala un poco más grande
+               - Drop Shadow del color de la marca
+            */
+            group-hover/logo:filter-none 
+            group-hover/logo:opacity-100 
+            group-hover/logo:scale-110 
+            group-hover/logo:drop-shadow-[0_0_15px_${partner.brandColor}80]
+          `}
+      />
+      
+    </div>
   );
 };

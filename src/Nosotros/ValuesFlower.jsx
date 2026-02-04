@@ -1,187 +1,121 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
-export default function ValuesFlower() {
-  const [hoveredValue, setHoveredValue] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
+// --- DATOS (Solo Título) ---
+const centerValue = 'Humildad';
 
-  // Detectar si es móvil
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+const satellites = [
+  // OPTIMIZACIÓN: Ajusté ligeramente las posiciones para evitar cortes en pantallas móviles verticales
+  { id: 1, title: 'Liderazgo', position: { top: '15%', left: '10%' } },
+  { id: 2, title: 'Agilidad', position: { top: '25%', right: '10%' } }, // Right ajustado
+  { id: 3, title: 'Calidad', position: { bottom: '30%', left: '15%' } },
+  { id: 4, title: 'Respeto', position: { bottom: '15%', right: '10%' } },
+  { id: 5, title: 'Responsabilidad', position: { top: '45%', left: '5%' } }, // Bajé un poco para no chocar con el centro
+  { id: 6, title: 'Equipo', position: { bottom: '40%', right: '5%' } },
+  { id: 7, title: 'Innovación', position: { top: '12%', right: '20%' } },
+  { id: 8, title: 'Pasión', position: { bottom: '10%', left: '30%' } },
+];
 
-  // DATOS
-  const centerValue = { id: 'core', title: 'Humildad', desc: 'El origen de nuestra grandeza.' };
+// --- PALABRA FLOTANTE (Minimalista) ---
+const FlyingWord = ({ item, range, progress }) => {
+  // Opacidad: Fade in -> Hold -> Fade out
+  const opacity = useTransform(progress, [range[0], range[0] + 0.1, range[1] - 0.1, range[1]], [0, 1, 1, 0]);
   
-  const satellites = [
-    { id: 1, title: 'Liderazgo', angle: 270, desc: 'Inspirar para transformar.' },
-    { id: 2, title: 'Agilidad', angle: 330, desc: 'Adaptación veloz y precisa.' },
-    { id: 3, title: 'Calidad', angle: 30, desc: 'Excelencia en cada detalle.' },
-    { id: 4, title: 'Respeto', angle: 90, desc: 'Valoramos a cada persona.' },
-    { id: 5, title: 'Resp. Social', angle: 150, desc: 'Impacto positivo en el mundo.' },
-    { id: 6, title: 'Equipo', angle: 210, desc: 'Juntos llegamos más lejos.' },
-  ];
-
-  // Radio dinámico ajustado
-  const RADIUS = isMobile ? 125 : 190; 
+  // Escala: Ajustada para móvil. En móvil crece menos (3.5) para no tapar toda la pantalla.
+  // En desktop sigue creciendo masivo (5).
+  // Nota: Framer Motion no acepta media queries directos en arrays, así que usamos un valor seguro intermedio o clases CSS para controlar el tamaño base.
+  const scale = useTransform(progress, [range[0], range[1]], [0.5, 4]);
+  
+  // Blur: Simula profundidad de campo (DOF)
+  const blur = useTransform(progress, [range[0], range[0] + 0.15, range[1] - 0.15, range[1]], [8, 0, 0, 15]);
+  const filter = useTransform(blur, (v) => `blur(${v}px)`);
+  
+  // Color: Pasa de gris oscuro (lejos) a blanco brillante (cerca)
+  const color = useTransform(progress, [range[0], range[0] + 0.2], ["#444", "#fff"]);
 
   return (
-    <section className="bg-[#050505] py-20 md:py-32 px-4 overflow-hidden relative min-h-[90vh] flex items-center justify-center font-sans">
+    <motion.div
+      style={{ 
+        opacity, 
+        scale, 
+        filter,
+        color,
+        ...item.position 
+      }}
+      // RESPONSIVO:
+      // text-2xl en móvil (para palabras largas) -> text-5xl en tablet -> text-7xl en desktop
+      // whitespace-nowrap asegura que no se rompa la palabra
+      className="absolute z-20 pointer-events-none font-sans font-bold whitespace-nowrap text-3xl sm:text-5xl md:text-7xl tracking-tight leading-none"
+    >
+       {item.title}
+    </motion.div>
+  );
+};
+
+export default function ValuesScrollTypo() {
+  const targetRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ["start start", "end end"]
+  });
+
+  // El NÚCLEO (Humildad) se desvanece
+  const coreOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const coreScale = useTransform(scrollYProgress, [0, 0.15], [1, 2]);
+  const coreBlur = useTransform(scrollYProgress, [0, 0.15], [0, 20]);
+  const coreFilter = useTransform(coreBlur, (v) => `blur(${v}px)`);
+
+  return (
+    // Altura controlable para la duración del viaje
+    <section ref={targetRef} className="relative h-[300vh] bg-[#050505] font-sans">
       
-      {/* --- FONDO AMBIENTAL (Más profundo) --- */}
-      <div className="absolute inset-0 pointer-events-none">
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-qualtop-orange/5 blur-[100px] rounded-full" />
-         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-      </div>
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center perspective-[1000px]">
+         
+         {/* Fondo Limpio */}
+         <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-[#0a0a0a] to-[#050505]" />
 
-      <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
-        
-        {/* 1. TEXTO INTRODUCTORIO */}
-        {/* CORRECCIÓN DE ORDEN: 'order-1' asegura que salga PRIMERO en móvil */}
-        <motion.div 
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center lg:text-left order-1 lg:order-1"
-        >
-          <span className="text-qualtop-orange text-xs font-black tracking-[0.3em] uppercase block mb-4 lg:mb-6">
-            Nuestro ADN
-          </span>
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight mb-6 lg:mb-8">
-            Nuestros <br className="hidden lg:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-qualtop-orange to-orange-400">
-              Valores.
+         {/* TÍTULO FIJO */}
+         {/* RESPONSIVO: Ajustado top y tamaños de fuente para que no ocupe media pantalla en móvil */}
+         <div className="absolute top-8 md:top-16 text-center w-full z-30 px-4">
+            <span className="text-qualtop-orange text-[10px] md:text-[14px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase block mb-2 opacity-80">
+                NUESTROS
             </span>
-          </h2>
-          
-          <div className="h-1 w-16 lg:w-24 bg-qualtop-orange mb-6 lg:mb-8 rounded-full mx-auto lg:mx-0 shadow-[0_0_15px_#FF4D00]" />
-          
-          <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 font-light leading-snug">
-            "Son las raíces de nuestro árbol de la cultura."
-          </p>
-          <p className="mt-6 text-gray-500 text-base md:text-lg max-w-md mx-auto lg:mx-0">
-             Cada decisión, cada proyecto y cada línea de código está impregnada de estos principios fundamentales que nos definen como Qualtop.
-          </p>
-        </motion.div>
+            <h2 className="text-2xl md:text-4xl font-medium text-white tracking-widest uppercase">
+                Valores
+            </h2>
+         </div>
 
-        {/* 2. SISTEMA INTERACTIVO */}
-        {/* CORRECCIÓN DE ORDEN: 'order-2' asegura que salga SEGUNDO en móvil */}
-        <div className="relative h-[400px] md:h-[600px] flex items-center justify-center order-2 lg:order-2 scale-95 md:scale-100 mt-8 lg:mt-0">
-            
-            {/* ANILLOS ORBITALES DE FONDO (Mejora de Diseño) */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-[250px] h-[250px] md:w-[380px] md:h-[380px] rounded-full border border-white/5" />
-                <div className="absolute w-[180px] h-[180px] md:w-[280px] md:h-[280px] rounded-full border border-white/5 border-dashed opacity-50" />
-            </div>
+         {/* --- PALABRA CENTRAL (CORE) --- */}
+         {/* RESPONSIVO: text-5xl en móvil, sube hasta 9xl en desktop */}
+         <motion.h1 
+           style={{ opacity: coreOpacity, scale: coreScale, filter: coreFilter }}
+           className="relative z-10 text-5xl sm:text-7xl md:text-9xl font-black text-white tracking-tighter text-center px-4"
+         >
+            {centerValue}
+         </motion.h1>
 
-            {/* CÍRCULO CENTRAL (Humildad) */}
-            <motion.div 
-              className="absolute z-30 w-32 h-32 md:w-44 md:h-44 rounded-full flex items-center justify-center cursor-pointer group"
-              whileHover={{ scale: 1.05 }}
-              animate={{ 
-                boxShadow: ['0 0 20px rgba(255,77,0,0.2)', '0 0 50px rgba(255,77,0,0.4)', '0 0 20px rgba(255,77,0,0.2)']
-              }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-               {/* Fondo y Brillo */}
-               <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black rounded-full border border-qualtop-orange shadow-[0_0_30px_rgba(255,77,0,0.15)] z-0" />
-               
-               {/* Texto Central */}
-               <div className="relative z-10 text-center px-2">
-                 <h3 className="text-white font-bold text-xl md:text-2xl tracking-tight drop-shadow-lg">{centerValue.title}</h3>
-               </div>
-               
-               {/* Ondas (Pulse) */}
-               <div className="absolute inset-0 rounded-full border border-qualtop-orange/40 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] opacity-30" />
-            </motion.div>
+         {/* --- PALABRAS SATÉLITE (Viaje) --- */}
+         {satellites.map((item, i) => {
+            // Distribución escalonada
+            const start = 0.1 + (i * 0.08); 
+            const end = start + 0.4; 
+            return (
+               <FlyingWord 
+                 key={item.id} 
+                 item={item} 
+                 range={[start, end]} 
+                 progress={scrollYProgress} 
+               />
+            );
+         })}
 
-            {/* SATÉLITES */}
-            {satellites.map((item, index) => {
-              const radian = (item.angle * Math.PI) / 180;
-              const x = Math.cos(radian) * RADIUS;
-              const y = Math.sin(radian) * RADIUS;
-
-              return (
-                <React.Fragment key={item.id}>
-                  
-                  {/* LÍNEA CONECTORA */}
-                  <motion.div 
-                    className="absolute top-1/2 left-1/2 h-[1px] origin-left -z-10"
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: RADIUS }}
-                    transition={{ duration: 1, delay: index * 0.1 }}
-                    style={{ 
-                      rotate: item.angle,
-                      background: hoveredValue === item.id 
-                        ? 'linear-gradient(90deg, transparent, #FF4D00)' 
-                        : 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08))'
-                    }}
-                  />
-
-                  {/* NODO DE VALOR (Con animación de respiración) */}
-                  <motion.div
-                    className="absolute w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center cursor-pointer"
-                    style={{ x, y }}
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    // Animación de "Respiración" (Floating)
-                    animate={{ 
-                      y: [y, y - 5, y],
-                    }}
-                    transition={{ 
-                      // Delay aleatorio para que no se muevan todos igual
-                      y: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: index * 0.5 },
-                      scale: { duration: 0.5 }
-                    }}
-                    whileHover={{ scale: 1.15, zIndex: 50 }}
-                    onMouseEnter={() => setHoveredValue(item.id)}
-                    onMouseLeave={() => setHoveredValue(null)}
-                  >
-                    {/* Estilo de la esfera */}
-                    <div className={`absolute inset-0 rounded-full border bg-[#0a0a0a] backdrop-blur-xl transition-all duration-300 ${
-                      hoveredValue === item.id 
-                        ? 'border-qualtop-orange shadow-[0_0_25px_rgba(255,77,0,0.5)]' 
-                        : 'border-white/10 hover:border-white/30'
-                    }`} />
-
-                    {/* Texto del Valor */}
-                    <div className="relative z-10 text-center px-1 flex flex-col items-center justify-center h-full">
-                      <span className={`text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
-                        hoveredValue === item.id ? 'text-white' : 'text-gray-400'
-                      }`}>
-                        {item.title}
-                      </span>
-                    </div>
-
-                    {/* TOOLTIP (Descripción) */}
-                    <AnimatePresence>
-                      {hoveredValue === item.id && !isMobile && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          className="absolute -bottom-16 w-44 bg-black/90 border border-qualtop-orange/30 p-4 rounded-xl text-center pointer-events-none z-[60] shadow-2xl"
-                        >
-                          {/* Triángulo del tooltip */}
-                          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-black border-t border-l border-qualtop-orange/30 rotate-45" />
-                          
-                          <p className="text-white text-[11px] font-medium leading-relaxed">
-                            <span className="text-qualtop-orange block mb-1 font-bold text-[9px] uppercase tracking-widest">Significado</span>
-                            {item.desc}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                </React.Fragment>
-              );
-            })}
-        </div>
+         {/* Indicador sutil */}
+         <motion.div 
+            style={{ opacity: useTransform(scrollYProgress, [0, 0.1], [1, 0]) }}
+            className="absolute bottom-8 md:bottom-10 left-1/2 -translate-x-1/2 text-white/20 text-[10px] tracking-[0.3em] font-mono animate-pulse"
+         >
+            SCROLL
+         </motion.div>
 
       </div>
     </section>
