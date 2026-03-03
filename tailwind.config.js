@@ -11,14 +11,14 @@ export default {
         sans: ['Poppins', 'sans-serif'], 
       },
 
-      // 2. COLORES (Aquí agregamos la paleta Dark Mode)
+      // 2. COLORES 
       colors: {
-        'qualtop-orange': '#FF4D00', // Tu naranja de siempre
-        'qualtop-dark': '#050505',   // NUEVO: El negro suave para el fondo (menos cansado)
-        'qualtop-card': '#111111',   // NUEVO: Gris muy oscuro para las tarjetas
+        'qualtop-orange': '#FF4D00', 
+        'qualtop-dark': '#050505',   
+        'qualtop-card': '#111111',   
       },
 
-      // 3. ANIMACIONES (Conservamos las tuyas)
+      // 3. ANIMACIONES (
       animation: {
         'spin-slow': 'spin 20s linear infinite',
         'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
@@ -38,8 +38,8 @@ export default {
     },
   },
   
-  // 4. PLUGINS
-  // Agregamos esto para que funcione la clase 'prose' en el Blog
+  // 4. PLUGINS --Blog
+
   plugins: [
     require('@tailwindcss/typography'),
   ],

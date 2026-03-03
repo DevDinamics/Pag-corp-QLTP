@@ -65,9 +65,9 @@ body, html {
   background-color: #FF4D00; 
 }
 
-/* 5. SELECCIÓN DE TEXTO (Branding total) */
-/* Cuando el usuario selecciona texto, se ve naranja en vez de azul aburrido */
+/* 5. SELECCIÓN DE TEXTO */
+
 ::selection {
-  background-color: #FF4D00;
-  color: #ffffff;
+  background-color: #FF4D00; /* Naranja Qualtop con 30% de opacidad */
+  color: #ffffff; /* Mantiene el texto blanco para legibilidad */
 }

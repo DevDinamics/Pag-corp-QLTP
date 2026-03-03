@@ -3,22 +3,22 @@ import { Linkedin, Facebook, Instagram, Youtube, ArrowRight, Mail } from 'lucide
 
 const footerLinks = {
   qualtop: [
-    { label: "Nosotros", href: "#" },
-    { label: "Valores", href: "#" },
-    { label: "Servicios", href: "#" },
-    { label: "FAQs", href: "#" },
-    { label: "Razón de ser", href: "#" },
-    { label: "Blog", href: "#" }
+    { label: "Nosotros", href: "/nosotros" },
+    { label: "Valores", href: "/valores" },
+    { label: "Servicios", href: "/servicios" },
+    { label: "FAQs", href: "/faqs" },
+    { label: "Razón de ser", href: "/razon-de-ser" },
+    { label: "Blog", href: "/blog" }
   ],
   servicios: [
-    { label: "Modernización Tecnológica", href: "#" },
-    { label: "Soluciones de negocio con IA", href: "#" }
+    { label: "Modernización Tecnológica", href: "/servicios#modernizacion" },
+    { label: "Soluciones de negocio con IA", href: "/servicios#ia" }
   ],
   legal: [
-    { label: "Política Organizacional de Seguridad de la Información", href: "#" },
-    { label: "Política Antisoborno", href: "#" },
-    { label: "Línea de denuncia", href: "#" },
-    { label: "Aviso de privacidad", href: "#" }
+    { label: "Política Organizacional de Seguridad de la Información", href: "/politica-seguridad" },
+    { label: "Política Antisoborno", href: "/politicas-antisoborno" },
+    { label: "Línea de denuncia", href: "/linea-de-denuncia" },
+    { label: "Aviso de privacidad", href: "/aviso-privacidad" }
   ]
 };
 

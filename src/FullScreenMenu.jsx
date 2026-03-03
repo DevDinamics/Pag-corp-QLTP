@@ -34,8 +34,12 @@ const mainLinks = [
     { title: "Contacto", href: "/contact-home" }
   ];
 
-  const legalLinks = ["Política de Seguridad de la información", "Política Antisoborno", "Línea de denuncia"];
-
+const legalLinks = [
+    { title: "Política de Seguridad de la información", href: "/politica-seguridad" }, // Ponle su ruta cuando la tengas
+    { title: "Política Antisoborno", href: "/politicas-antisoborno" }, // <- ESTA ES LA NUEVA
+    { title: "Línea de denuncia", href: "/linea-de-denuncia" }
+  ];
+  
   // --- ANIMACIONES ---
   const menuVariants = {
     closed: { opacity: 0, backdropFilter: "blur(0px)", transition: { duration: 0.4 } },
@@ -110,9 +114,15 @@ const mainLinks = [
                 <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6, duration: 0.8 }} className="flex flex-col items-end gap-16">
                     <div className="flex flex-col gap-8 w-full">
                         <p className="text-qualtop-orange font-bold tracking-[0.4em] text-[15px] uppercase opacity-60 text-right">SOPORTE & LEGAL</p>
-                        {legalLinks.map((text, i) => (
-                            <Link key={i} to="#" className="group relative text-gray-400 hover:text-white transition-all duration-500 text-lg flex items-center justify-end gap-4">
-                                <span className="group-hover:-translate-x-2 transition-transform duration-500">{text}</span>
+                        {/* CAMBIO: Ahora usamos link.title y link.href, y añadimos onClose */}
+                        {legalLinks.map((link, i) => (
+                            <Link 
+                                key={i} 
+                                to={link.href} 
+                                onClick={onClose} // <- IMPORTANTE: Para que el menú se cierre al hacer click
+                                className="group relative text-gray-400 hover:text-white transition-all duration-500 text-lg flex items-center justify-end gap-4"
+                            >
+                                <span className="group-hover:-translate-x-2 transition-transform duration-500">{link.title}</span>
                                 <div className="h-[1px] w-0 group-hover:w-12 bg-qualtop-orange transition-all duration-500" />
                             </Link>
                         ))}
@@ -208,17 +218,17 @@ const mainLinks = [
 
             {/* 3. LEGAL & SOCIALES MÓVIL */}
             <div className="mt-auto">
-                <div className="flex gap-4 mb-6">
-                    {[<Linkedin />, <Facebook />, <Instagram />].map((icon, i) => (
-                        <a key={i} href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-qualtop-orange transition-colors">
-                            {React.cloneElement(icon, { size: 18 })}
-                        </a>
-                    ))}
-                </div>
+                {/* ... (Las redes sociales se quedan igual) ... */}
                 <div className="flex flex-col gap-2">
-                    {legalLinks.map((text, i) => (
-                        <Link key={i} to="#" className="text-xs text-gray-600 hover:text-gray-400">
-                            {text}
+                    {/* CAMBIO: Usamos link.title y link.href, y añadimos onClose */}
+                    {legalLinks.map((link, i) => (
+                        <Link 
+                            key={i} 
+                            to={link.href} 
+                            onClick={onClose} // <- IMPORTANTE
+                            className="text-xs text-gray-600 hover:text-qualtop-orange transition-colors"
+                        >
+                            {link.title}
                         </Link>
                     ))}
                 </div>

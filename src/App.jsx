@@ -1,10 +1,11 @@
-import React, { Suspense, useEffect, useState } from 'react'; // Agregué useState
+import React, { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
+import { Preload } from '@react-three/drei'; // Optimización de carga 3D
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Helmet, HelmetProvider } from 'react-helmet-async'; 
 
-// ... IMPORTS ...
+// ... IMPORTS SECCIONES ...
 import Navbar from './Navbar';
 import NeuralNetwork from './NeuralNetwork';
 import Nosotros from './Nosotros/Nosotros'; 
@@ -22,7 +23,10 @@ import ScrollToTopButton from './ScrollToTop';
 import CookieConsent from './CookieConsent';
 import DownloadModal from './DownloadModal';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-
+import AntisobornoSection from './AntisobornoSection';
+import LineaDenuncia from './LineaDenuncia';
+import PoliticaSeguridad from './PoliticaSeguridad';
+import AvisoPrivacidad from './AvisoPrivacidad';
 
 // --- UTILIDADES DE SCROLL ---
 const ScrollToTop = () => {
@@ -51,53 +55,64 @@ const ScrollToHashElement = () => {
   return null;
 };
 
-// --- HOME COMPONENT MODIFICADO ---
+// --- HOME COMPONENT OPTIMIZADO PARA CERO DELAY ---
 const Home = () => {
-  // Estado para controlar el Modal
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   return (
     <>
-      {/* HERO SECTION - DARK MODE */}
       <section className="relative h-screen w-full overflow-hidden bg-[#050505]">
         
-        {/* Fondo 3D Oscuro */}
+        {/* FONDO 3D: Optimizado para Safari y Chrome */}
         <div className="absolute inset-0 z-0">
-          <Canvas 
-            camera={{ position: [0, 0, 30], fov: 50 }} 
-            dpr={[1, 2]} 
-            performance={{ min: 0.5 }}
-          >
-            {/* CAMBIO DARK: Fondo negro y Niebla negra para profundidad */}
-            <color attach="background" args={['#050505']} />
-            <fog attach="fog" args={['#050505', 10, 60]} /> 
-            
-            <NeuralNetwork />
-            
-            <Suspense fallback={null}>
-              <EffectComposer disableNormalPass multisampling={0}>
-                {/* Bloom ajustado para resaltar sobre negro */}
-                <Bloom luminanceThreshold={0} mipmapBlur intensity={1.5} radius={0.6} />
-              </EffectComposer>
-            </Suspense>
-          </Canvas>
+          <Suspense fallback={<div className="bg-[#050505] w-full h-full" />}>
+            <Canvas 
+              camera={{ position: [0, 0, 30], fov: 50 }} 
+              dpr={1} // Fijo en 1 para evitar lag en pantallas Retina/High-DPI
+              performance={{ min: 0.5 }}
+              gl={{ 
+                antialias: false, 
+                powerPreference: "high-performance",
+                stencil: false,
+                depth: true // Mantener true para la red neuronal
+              }}
+            >
+              <color attach="background" args={['#050505']} />
+              <fog attach="fog" args={['#050505', 10, 60]} /> 
+              
+              <NeuralNetwork />
+              
+              <Suspense fallback={null}>
+                <EffectComposer disableNormalPass multisampling={0}>
+                  <Bloom 
+                    luminanceThreshold={0.2} // Ajuste para procesar menos brillo innecesario
+                    mipmapBlur 
+                    intensity={1.2} 
+                    radius={0.4} 
+                  />
+                </EffectComposer>
+              </Suspense>
+              <Preload all />
+            </Canvas>
+          </Suspense>
         </div>
         
-        {/* Contenido Texto */}
-        <div className="relative z-10 flex flex-col justify-center min-h-screen max-w-7xl mx-auto px-6 md:px-12 pointer-events-none">
+        {/* CONTENIDO TEXTO: transform-gpu ayuda a Safari a priorizar esta capa */}
+        <div className="relative z-10 flex flex-col justify-center min-h-screen max-w-7xl mx-auto px-6 md:px-12 pointer-events-none transform-gpu">
           <div className="mt-10 md:mt-0"> 
             <h3 className="text-qualtop-orange font-extrabold text-xl md:text-2xl tracking-[0.3em] mb-6 uppercase drop-shadow-[0_0_15px_rgba(255,77,0,0.5)]">
               CASO DE ÉXITO
             </h3>
-            {/* CAMBIO DARK: Texto Blanco */}
-            <h1 className="text-4xl md:text-6xl text-white mb-10 max-w-5xl leading-[1.4]">
+            
+            {/* CORRECCIÓN INTERLINEADO Y TRACKING */}
+            <h1 className="text-4xl md:text-6xl text-white mb-10 max-w-5xl leading-tight tracking-tight">
               Modernización Tecnológica para <br className="hidden lg:block"/>
-              <span className="font-bold inline-block mt-2 text-white bg-clip-text ">
+              <span className="font-bold inline-block mt-2 text-white">
                 la Banca Mexicana – 2026
               </span>
             </h1>
+
             <div className="pointer-events-auto flex gap-6">
-              {/* BOTÓN CONECTADO AL MODAL */}
               <button 
                 onClick={() => setShowDownloadModal(true)}
                 className="bg-qualtop-orange hover:bg-orange-600 text-white text-base font-bold py-4 px-10 rounded-[4px] transition-all duration-300 hover:scale-105 uppercase tracking-widest shadow-[0_0_30px_rgba(255,77,0,0.4)]"
@@ -108,15 +123,11 @@ const Home = () => {
           </div>
         </div>
         
-        {/* Degradado inferior */}
         <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#050505] to-transparent z-10 pointer-events-none" />
         
-        {/* RENDERIZADO DEL MODAL */}
         <DownloadModal isOpen={showDownloadModal} onClose={() => setShowDownloadModal(false)} />
-      
       </section>
   
-      {/* WRAPPER DE SECCIONES - DARK MODE */}
       <div className="relative z-10 bg-[#050505] -mt-2 pb-20">
         <ServicesSection />
         <ProductsSection />
@@ -135,7 +146,6 @@ export default function App() {
       <Helmet>
         <title>Qualtop | Transformación Digital</title>
         <meta name="description" content="Soluciones tech." />
-        {/* CAMBIO DARK: Theme color negro */}
         <meta name="theme-color" content="#050505" />
         <link rel="canonical" href="https://qualtop.com/" />
       </Helmet>
@@ -144,8 +154,7 @@ export default function App() {
         <ScrollToTop />
         <ScrollToHashElement />
         
-        {/* CAMBIO DARK: Fondo negro y texto base blanco */}
-        <main className="relative w-full min-h-screen bg-[#050505] selection:bg-qualtop-orange selection:text-white font-sans text-white">      
+        <main className="relative w-full min-h-screen bg-[#050505] font-sans text-white">      
           <Navbar />
           <Routes>
             <Route path="/" element={<Home />} />
@@ -153,6 +162,10 @@ export default function App() {
             <Route path="/blog" element={<BlogHome />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/contact-home" element={<ContactHome />} />
+            <Route path="/politica-seguridad" element={<PoliticaSeguridad />} />
+            <Route path="/politicas-antisoborno" element={<AntisobornoSection />} />
+            <Route path="/linea-de-denuncia" element={<LineaDenuncia />} />
+            <Route path="/aviso-privacidad" element={<AvisoPrivacidad />} />
             <Route path="*" element={<Home />} />
           </Routes>
           <CookieConsent />
