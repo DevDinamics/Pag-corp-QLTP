@@ -11,14 +11,14 @@ export default function AvisoPrivacidad() {
   return (
     <section className="relative pt-40 pb-32 bg-[#050505] min-h-screen font-sans text-white">
       
-      {/* Fondo formal y sutil */}
+      {/* Fondo */}
       <div className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none z-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-white/[0.03] to-transparent" />
       </div>
 
       <div className="max-w-4xl mx-auto px-6 relative z-10">
         
-        {/* --- HEADER LEGAL --- */}
+        {/* --- HEADER --- */}
         <div className="mb-16 text-center md:text-left">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
             <span className="text-qualtop-orange font-bold tracking-[0.3em] text-xs uppercase px-4 py-2 bg-qualtop-orange/10 rounded-full border border-qualtop-orange/20">
@@ -144,7 +144,7 @@ export default function AvisoPrivacidad() {
             <strong>Conservación:</strong> Cuando los datos hayan dejado de ser necesarios para el cumplimiento de las finalidades, serán suprimidos una vez que concluya el plazo de conservación de <strong>setenta y dos meses</strong> de acuerdo con el artículo 10 de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.
           </p>
 
-          {/* --- BLOQUE DE CONSENTIMIENTO INTERACTIVO --- */}
+          {/* --- BLOQUE DE CONSENTIMIENTO --- */}
           <div className="mt-16 pt-8 border-t border-white/10">
             <h3 className="text-xl font-bold text-white mb-6">Confirmación de Consentimiento</h3>
             <div className="flex flex-col md:flex-row gap-4">

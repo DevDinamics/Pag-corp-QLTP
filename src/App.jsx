@@ -28,6 +28,7 @@ import LineaDenuncia from './LineaDenuncia';
 import PoliticaSeguridad from './PoliticaSeguridad';
 import AvisoPrivacidad from './AvisoPrivacidad';
 
+
 // --- UTILIDADES DE SCROLL ---
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -63,12 +64,12 @@ const Home = () => {
     <>
       <section className="relative h-screen w-full overflow-hidden bg-[#050505]">
         
-        {/* FONDO 3D: Optimizado para Safari y Chrome */}
+        
         <div className="absolute inset-0 z-0">
           <Suspense fallback={<div className="bg-[#050505] w-full h-full" />}>
             <Canvas 
               camera={{ position: [0, 0, 30], fov: 50 }} 
-              dpr={1} // Fijo en 1 para evitar lag en pantallas Retina/High-DPI
+              dpr={1} 
               performance={{ min: 0.5 }}
               gl={{ 
                 antialias: false, 
@@ -85,7 +86,7 @@ const Home = () => {
               <Suspense fallback={null}>
                 <EffectComposer disableNormalPass multisampling={0}>
                   <Bloom 
-                    luminanceThreshold={0.2} // Ajuste para procesar menos brillo innecesario
+                    luminanceThreshold={0.2} 
                     mipmapBlur 
                     intensity={1.2} 
                     radius={0.4} 
@@ -97,14 +98,14 @@ const Home = () => {
           </Suspense>
         </div>
         
-        {/* CONTENIDO TEXTO: transform-gpu ayuda a Safari a priorizar esta capa */}
+        
         <div className="relative z-10 flex flex-col justify-center min-h-screen max-w-7xl mx-auto px-6 md:px-12 pointer-events-none transform-gpu">
           <div className="mt-10 md:mt-0"> 
             <h3 className="text-qualtop-orange font-extrabold text-xl md:text-2xl tracking-[0.3em] mb-6 uppercase drop-shadow-[0_0_15px_rgba(255,77,0,0.5)]">
               CASO DE ÉXITO
             </h3>
             
-            {/* CORRECCIÓN INTERLINEADO Y TRACKING */}
+        
             <h1 className="text-4xl md:text-6xl text-white mb-10 max-w-5xl leading-tight tracking-tight">
               Modernización Tecnológica para <br className="hidden lg:block"/>
               <span className="font-bold inline-block mt-2 text-white">

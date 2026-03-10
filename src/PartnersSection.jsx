@@ -12,7 +12,7 @@ const partners = [
   { name: "ISTQB", logo: "https://qualtop.com/wp-content/uploads/2025/11/istqb1.png", width: "w-28", brandColor: "#005b96" }
 ];
 
-// Duplicamos x4 para asegurar el loop infinito suave
+
 const marqueePartners = [...partners, ...partners, ...partners, ...partners];
 
 export default function PartnersCarousel() {

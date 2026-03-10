@@ -11,7 +11,7 @@ export default defineType({
       type: 'string',
     }),
 
-    // --- AQUÍ ESTÁ EL NUEVO CAMPO QUE OCUPAS ---
+    // NUEVO CAMPO TITULO ---
     defineField({
       name: 'shortTitle',
       title: 'Título Corto (Para Tarjeta)',

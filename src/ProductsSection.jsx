@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Server, BarChart3, Activity, Zap, BrainCircuit } from 'lucide-react';
 
-// --- DATOS MODERNIZACIÓN (Tech) ---
+
 const servicesTech = [
   { 
     icon: <Server />, 
@@ -27,7 +27,7 @@ const servicesTech = [
   }
 ];
 
-// --- DATOS IA (Complementarios a QOPA) ---
+
 const servicesIA = [
   { 
     id: 'decode',
@@ -57,7 +57,7 @@ export default function ServicesSection() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Escuchar Hash de URL
+  
   useEffect(() => {
     if (location.hash === '#modernizacion') {
       setActiveTab('tech');
@@ -78,13 +78,12 @@ export default function ServicesSection() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* ENCABEZADO */}
-<div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-qualtop-orange font-bold tracking-[0.2em] uppercase text-sm mb-4">
             Nuestras Capacidades
           </h2>
           <h3 className="text-4xl md:text-5xl font-bold text-white leading-normal">
             Capacidades clave para organizaciones
-            {/* CORRECCIÓN: 'block' baja el texto y 'mt-4' lo separa del de arriba */}
             <span className="block mt-4 text-gray-500">donde fallar no es opción.</span>
           </h3>
         </div>
@@ -111,10 +110,8 @@ export default function ServicesSection() {
         <div className="min-h-[600px]">
           <AnimatePresence mode='wait'>
             
-            {/* ==============================================
-                PESTAÑA 1: MODERNIZACIÓN (TECH) - SIN BOTÓN
-               ============================================== */}
-            {activeTab === 'tech' ? (
+            
+            {activeTab === 'tech' && (
               <motion.div
                 key="tech"
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
@@ -142,15 +139,11 @@ export default function ServicesSection() {
                     </div>
                   ))}
                 </div>
-                
-                {/* AQUÍ ELIMINAMOS EL BOTÓN QUE ESTABA ANTES */}
-
               </motion.div>
-            ) : (
-              
-              /* ==============================================
-                 PESTAÑA 2: IA 
-                 ============================================== */
+            )}
+
+            
+            {activeTab === 'ia' && (
               <motion.div
                 key="ia"
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -166,13 +159,13 @@ export default function ServicesSection() {
                    </p>
                 </div>
 
-                {/* LAYOUT ASIMÉTRICO: QOPA GRANDE + GRID DE OTROS */}
+                
                 <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-16">
                   
-                  {/* QOPA: TARJETA HERO */}
+                  
                   <motion.div 
                     whileHover={{ y: -5 }}
-                    className="lg:col-span-6 relative h-[450px] lg:h-[500px] rounded-3xl overflow-hidden border border-qualtop-orange/30 bg-[#0a0a0a] group"
+                    className="lg:col-span-6 relative h-[450px] lg:h-[500px] rounded-3xl overflow-hidden border border-qualtop-orange/30 bg-[#0a0a0a] group cursor-pointer"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-orange-600/20 via-black to-black opacity-100 group-hover:opacity-90 transition-opacity" />
                     <div className="absolute -right-20 -top-20 w-80 h-80 bg-qualtop-orange/20 blur-[100px] rounded-full" />
@@ -188,9 +181,14 @@ export default function ServicesSection() {
                           </p>
                        </div>
                        
-                       <div className="flex items-center gap-3 text-qualtop-orange font-bold uppercase tracking-widest text-sm group-hover:gap-5 transition-all">
+                       {/* CAMBIO: Link funcional */}
+                       <Link 
+                          to="/qopa-demo" 
+                          className="flex items-center gap-3 text-qualtop-orange font-bold uppercase tracking-widest text-sm group-hover:gap-5 transition-all w-fit relative z-20"
+                       >
                           Conoce más <ArrowRight size={20} />
-                       </div>
+                          <span className="absolute inset-0" />
+                       </Link>
                     </div>
                   </motion.div>
 
@@ -215,7 +213,7 @@ export default function ServicesSection() {
                       </motion.div>
                     ))}
                     
-                    {/* Tarjeta Extra */}
+                    
                     <motion.div 
                       whileHover={{ y: -5 }}
                       onClick={() => navigate('/contact-home')}

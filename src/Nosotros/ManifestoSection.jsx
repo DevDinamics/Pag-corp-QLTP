@@ -1,11 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, AudioLines, ArrowUpRight } from 'lucide-react';
+import { Play, Pause, AudioLines, ArrowUpRight, Volume2, VolumeX } from 'lucide-react';
 
 export default function ManifestoSection() {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  // Nuevo estado para el volumen
+  const [isMuted, setIsMuted] = useState(true);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -15,6 +17,15 @@ export default function ManifestoSection() {
         videoRef.current.play();
       }
       setIsPlaying(!isPlaying);
+    }
+  };
+
+  // Función para manejar el sonido
+  const toggleMute = (e) => {
+    e.stopPropagation(); // Evita que al dar clic al sonido se pause el video
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
     }
   };
 
@@ -43,7 +54,7 @@ export default function ManifestoSection() {
             <video
               ref={videoRef}
               loop
-              muted
+              muted={isMuted} // Vinculado al estado
               playsInline
               poster="https://qualtop.com/wp-content/uploads/2025/09/poster-frame.jpg" 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -56,17 +67,28 @@ export default function ManifestoSection() {
             <div className={`absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/90 via-black/40 to-transparent transition-opacity duration-700 ${isPlaying ? 'opacity-40' : 'opacity-80'}`} />
           </div>
 
+          {/* NUEVO: BOTÓN DE SONIDO FLOTANTE */}
+          <div className="absolute top-6 right-6 z-40 pointer-events-auto">
+            <button 
+              onClick={toggleMute}
+              className="p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:bg-qualtop-orange hover:border-qualtop-orange text-white transition-all duration-300"
+              title={isMuted ? "Activar sonido" : "Silenciar"}
+            >
+              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </button>
+          </div>
+
           {/* B. CAPA DE CONTENIDO (Layout) */}
-          {/* Responsive: flex-col-reverse (texto abajo) en móvil, flex-row en desktop */}
           <div className="absolute inset-0 p-6 md:p-16 flex flex-col justify-end md:justify-between md:flex-row md:items-center pointer-events-none">
             
             {/* Contenido Texto */}
+            {/* LA MAGIA AQUÍ: Añadimos una transición de opacidad basada en si 'isPlaying' es true y es tamaño móvil (md:opacity-100 lo mantiene visible en desktop) */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="pointer-events-auto w-full md:max-w-2xl relative z-20 mt-20 md:mt-0"
+              className={`pointer-events-auto w-full md:max-w-2xl relative z-20 mt-20 md:mt-0 transition-opacity duration-500 ${isPlaying ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'}`}
             >
               {/* Etiqueta */}
               <div className="flex items-center gap-3 mb-4 md:mb-6">
@@ -132,7 +154,7 @@ export default function ManifestoSection() {
           </div>
 
           {/* D. BARRA DE PROGRESO */}
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10">
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-50">
              <motion.div 
                className="h-full bg-qualtop-orange"
                initial={{ width: 0 }}

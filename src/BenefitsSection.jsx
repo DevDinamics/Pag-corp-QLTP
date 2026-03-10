@@ -85,7 +85,7 @@ export default function BenefitsSection() {
                 {/* Título y Descripción */}
                 <div>
                    <h3 className="text-white font-bold text-lg mb-2 hidden">
-                     {item.title} {/* Oculto visualmente si prefieres solo el tagline como en la foto, o puedes descomentarlo */}
+                     {item.title} 
                    </h3>
                    <p className="text-gray-400 leading-relaxed text-sm md:text-base">
                      {item.description}

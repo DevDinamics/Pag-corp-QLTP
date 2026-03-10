@@ -29,12 +29,11 @@ export default function NeuralNetwork() {
   const gridRef = useRef()
   const floatingRef = useRef()
   
-  // Referencias para la lógica del mouse
-  const smoothedMouse = useRef(new THREE.Vector3(0, -8, 0)) // Guardamos X, Y, Z (Mundo)
+
+  const smoothedMouse = useRef(new THREE.Vector3(0, -8, 0)) // X, Y, Z (Mundo)
   const mouseMoved = useRef(false)
   
-  // Herramientas para el Raycasting (Detectar profundidad real)
-  // Las creamos una sola vez para no saturar la memoria
+
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 8), []) // Plano a la altura y=-8
   const target = useMemo(() => new THREE.Vector3(), [])
@@ -93,24 +92,22 @@ export default function NeuralNetwork() {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
 
-    // --- LÓGICA DE MOUSE CORREGIDA (RAYCASTING) ---
-    // Lanzamos un rayo desde la cámara hacia donde apunta el mouse
+    
     raycaster.setFromCamera(mouse, camera)
     
-    // Calculamos dónde choca ese rayo con el "suelo" (y=-8)
-    // Esto nos da la posición exacta en el mundo 3D, sin importar la profundidad
+ 
     if (raycaster.ray.intersectPlane(plane, target)) {
         if (!mouseMoved.current) {
-            smoothedMouse.current.copy(target) // Sincronización inicial
+            smoothedMouse.current.copy(target) 
             mouseMoved.current = true
         } else {
-            // LERP: Movemos el punto suavemente hacia el destino (0.1 = velocidad de suavizado)
+           
             smoothedMouse.current.x += (target.x - smoothedMouse.current.x) * 0.1
             smoothedMouse.current.z += (target.z - smoothedMouse.current.z) * 0.1
         }
     }
 
-    // Coordenadas reales del mouse en el mundo 3D
+    
     const mX = smoothedMouse.current.x
     const mZ = smoothedMouse.current.z
 
@@ -133,9 +130,7 @@ export default function NeuralNetwork() {
         let mouseInfluence = 0
         
         if (mouseMoved.current) {
-          // CHECK DE RENDIMIENTO:
-          // Solo calculamos la distancia real si estamos cerca del mouse (bounding box simple)
-          // Esto evita hacer 24,000 raíces cuadradas si el punto está muy lejos.
+          
           if (Math.abs(x - mX) < radius && Math.abs(z - mZ) < radius) {
               const dx = x - mX
               const dz = z - mZ

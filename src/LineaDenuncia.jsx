@@ -2,9 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Plus, Trash2, UploadCloud, Info, ChevronDown, Check } from 'lucide-react';
 
-// ==========================================
-// COMPONENTE: SELECT PRO
-// ==========================================
+
 const SelectPro = ({ label, options, value, onChange, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -125,7 +123,7 @@ export default function LineaDenuncia() {
           
           {/* BLOQUE 1: Datos Generales */}
           <div className={glassPanelClass}>
-            {/* ESCALERA Z-INDEX 1: Prioridad Máxima z-[50] */}
+         
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-[50]">
               <SelectPro 
                 label="Relación con la empresa*" 
@@ -161,7 +159,7 @@ export default function LineaDenuncia() {
               />
             </div>
 
-            {/* ESCALERA Z-INDEX 2: Prioridad Media z-[40] */}
+       
             <div className="pt-6 relative z-[40]">
               <SelectPro 
                 label="Tipo de Denuncia*" 
@@ -234,7 +232,7 @@ export default function LineaDenuncia() {
                   animate={{ opacity: 1, height: 'auto', scale: 1 }}
                   exit={{ opacity: 0, height: 0, scale: 0.95 }}
                   className="bg-black/40 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 relative shadow-xl mb-4"
-                  // Escalera Z-Index Dinámica para los implicados
+                 
                   style={{ zIndex: 30 - index }} 
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

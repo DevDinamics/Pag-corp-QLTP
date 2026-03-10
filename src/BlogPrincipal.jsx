@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react'; // Importar useMemo
+import React, { useState, useEffect, useMemo } from 'react'; 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Search, X, Loader2, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { client, urlFor } from './client'; 
 
-// ... (Tus variantes de animación se quedan igual) ...
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -16,7 +16,7 @@ const itemVariants = {
 };
 
 export default function BlogHome() {
-  const [posts, setPosts] = useState([]); // Solo guardamos la fuente de verdad
+  const [posts, setPosts] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 9; 
@@ -28,7 +28,7 @@ export default function BlogHome() {
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('q') || "";
 
-  // Scroll al inicio al cambiar página
+
   useEffect(() => { 
     window.scrollTo({ top: 0, behavior: 'instant' }); 
   }, [location.pathname, currentPage]); 
@@ -60,7 +60,7 @@ export default function BlogHome() {
 
   
   const displayedPosts = useMemo(() => {
-    if (!searchQuery) return posts; // devuelve todo
+    if (!searchQuery) return posts; // devuelve todoo
 
     const lowerQuery = searchQuery.toLowerCase();
     return posts.filter(post => 
@@ -70,7 +70,7 @@ export default function BlogHome() {
     );
   }, [searchQuery, posts]);
 
-  // Resetear página si cambia la búsqueda
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
@@ -122,7 +122,7 @@ export default function BlogHome() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} 
             className="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6"
           >
-            Blog <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Qualtop</span>
+            Blog <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500"></span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} 
@@ -151,11 +151,11 @@ export default function BlogHome() {
           )}
         </AnimatePresence>
 
-        {/* GRID DE POSTS (Usamos displayedPosts.length) */}
+
         {displayedPosts.length > 0 ? (
           <>
             <motion.div 
-              key={currentPage + searchQuery} // Key única para forzar animación al buscar/cambiar página
+              key={currentPage + searchQuery} 
               variants={containerVariants}
               initial="hidden"
               animate="visible"
