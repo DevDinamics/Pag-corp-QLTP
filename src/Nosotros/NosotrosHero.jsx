@@ -50,8 +50,6 @@ export default function NosotrosHero() {
         </motion.button>
       </div>
 
-      {/* 4. Elemento decorativo de fondo (Aura sutil) */}
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-qualtop-orange/10 blur-[120px] rounded-full pointer-events-none" />
     </section>
   );
 }
