@@ -13,8 +13,8 @@ export default {
 
       // 2. COLORES 
       colors: {
-        'qualtop-orange': '#FF4D00', 
-        'qualtop-dark': '#050505',   
+        'qualtop-orange': '#E63B11', 
+        'qualtop-dark': '#07080A',   
         'qualtop-card': '#111111',   
       },
 

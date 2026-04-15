@@ -1,13 +1,15 @@
 import React from 'react';
 import { Linkedin, Facebook, Instagram, Youtube, ArrowRight, Mail } from 'lucide-react';
 
+// 1. IMPORTAMOS EL LOGO OFICIALMENTE PARA VITE
+import logoQualtop from './assets/logos/Logo2Qualtop.png';
+
 const footerLinks = {
   qualtop: [
     { label: "Nosotros", href: "/nosotros" },
     { label: "Valores", href: "/valores" },
-    { label: "Servicios", href: "/servicios" },
-    { label: "FAQs", href: "/faqs" },
-    { label: "Razón de ser", href: "/razon-de-ser" },
+    { label: "Servicios", href: "/servicios#modernizacion" },
+    // { label: "FAQs", href: "/faqs" },
     { label: "Blog", href: "/blog" }
   ],
   servicios: [
@@ -36,7 +38,8 @@ export default function Footer() {
           {/* COLUMNA MARCA (4/12) */}
           <div className="md:col-span-4 space-y-6">
             <img 
-              src="https://qualtop.com/wp-content/uploads/2025/09/Q_Logo.svg" 
+              // 2. USAMOS LA VARIABLE DEL LOGO QUE IMPORTAMOS ARRIBA
+              src={logoQualtop} 
               alt="Qualtop Logo" 
               className="w-40 h-auto object-contain"
             />
@@ -98,10 +101,10 @@ export default function Footer() {
                 </a>
                 
                 <div className="flex gap-4">
-                    <a href="#" className="text-white hover:text-qualtop-orange transition-all"><Facebook size={20} /></a>
-                    <a href="#" className="text-white hover:text-qualtop-orange transition-all"><Instagram size={20} /></a>
-                    <a href="#" className="text-white hover:text-qualtop-orange transition-all"><Linkedin size={20} /></a>
-                    <a href="#" className="text-white hover:text-qualtop-orange transition-all"><Youtube size={20} /></a>
+                      <a href="https://www.facebook.com/qualtop" aria-label="Visitar nuestro Facebook" className="text-white hover:text-qualtop-orange transition-all"><Facebook size={20} /></a>
+                      <a href=" https://www.instagram.com/qualtop_" aria-label="Visitar nuestro Instagram" className="text-white hover:text-qualtop-orange transition-all"><Instagram size={20} /></a>
+                      <a href="https://www.linkedin.com/company/qualtopgroup/" aria-label="Visitar nuestro LinkedIn" className="text-white hover:text-qualtop-orange transition-all"><Linkedin size={20} /></a>
+                      <a href="https://www.youtube.com/@qualtop_" aria-label="Visitar nuestro YouTube" className="text-white hover:text-qualtop-orange transition-all"><Youtube size={20} /></a>
                 </div>
             </div>
           </div>

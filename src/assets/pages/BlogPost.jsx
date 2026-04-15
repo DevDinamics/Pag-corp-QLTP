@@ -5,14 +5,14 @@ import { Helmet } from 'react-helmet-async';
 import { PortableText } from '@portabletext/react';
 import {
   Calendar, ArrowLeft, Share2, Check, Mail, 
-  Linkedin, Twitter, Loader2, ExternalLink, Clock
+  Loader2, ExternalLink, Clock
 } from 'lucide-react';
 
 // CONEXIÓN CON SANITY
 import { client, urlFor } from '../../client'; 
 
 // =================================================================
-// 1. ESTILOS DE TIPOGRAFÍA (SOLUCIÓN DEFINITIVA AL TEXTO ENCIMADO)
+// 1. ESTILOS DE TIPOGRAFÍA 
 // =================================================================
 const ptComponents = {
   block: {
@@ -122,32 +122,6 @@ export default function BlogPost() {
   const handleCopyLink = async () => {
     const url = window.location.href; 
     try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch (err) {}
-  };
-
-  // COMPARTIR REDES SOCIALES (Popup Pro)
-  const shareToSocial = (platform) => {
-    const url = encodeURIComponent(window.location.href); 
-    let shareUrl = "";
-
-    if (platform === 'linkedin') {
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-    } 
-    
-    if (platform === 'twitter') {
-        const text = encodeURIComponent(`🚀 Lectura recomendada: ${post?.title} vía @Qualtop`);
-        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
-    }
-
-    const width = 600;
-    const height = 600;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
-    
-    window.open(
-        shareUrl, 
-        'Compartir', 
-        `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=${width}, height=${height}, top=${top}, left=${left}`
-    );
   };
 
   if (loading) return <div className="bg-[#050505] min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-qualtop-orange" size={40} /></div>;
@@ -266,14 +240,6 @@ export default function BlogPost() {
                         <button onClick={handleCopyLink} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group">
                             <div className="p-2 rounded-full bg-white/5 group-hover:bg-white group-hover:text-black transition-all"><Share2 size={18}/></div>
                             <span className="text-sm font-medium">Copiar Enlace</span>
-                        </button>
-                        <button onClick={() => shareToSocial('linkedin')} className="flex items-center gap-3 text-gray-400 hover:text-[#0077b5] transition-colors group">
-                            <div className="p-2 rounded-full bg-white/5 group-hover:bg-[#0077b5] group-hover:text-white transition-all"><Linkedin size={18}/></div>
-                            <span className="text-sm font-medium">LinkedIn</span>
-                        </button>
-                        <button onClick={() => shareToSocial('twitter')} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group">
-                            <div className="p-2 rounded-full bg-white/5 group-hover:bg-black group-hover:text-white transition-all"><Twitter size={18}/></div>
-                            <span className="text-sm font-medium">X (Twitter)</span>
                         </button>
                     </div>
                 </div>

@@ -1,35 +1,41 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
+// 1. IMPORTACIÓN DE LOGOS DESDE ASSETS
+import logoOracle from './assets/partners-logos/logo-oracle-company.png';
+import logoDatabricks from './assets/partners-logos/Databricks_Logo.png'; 
+import logoAws from './assets/partners-logos/logo-Amazon.png';
+import logoGoogleCloud from './assets/partners-logos/lockup_GoogleCloud_FullColor_rgb_139x24px-1.svg';
+import logoIbm from './assets/partners-logos/logo-ibm.png';
+import logoSafe from './assets/partners-logos/Certified Tester Expert Level Test Management Strategic Test Management.png';
+
 // --- DATOS DE PARTNERS ---
 const partners = [
-  { name: "Oracle", logo: "https://cdn.worldvectorlogo.com/logos/oracle-6.svg", width: "w-32", brandColor: "#F80000" },
-  { name: "Databricks", logo: "https://qualtop.com/wp-content/uploads/2025/11/darabricks.png", width: "w-32", brandColor: "#FF3621" },
-  { name: "AWS", logo: "https://cdn.worldvectorlogo.com/logos/aws-2.svg", width: "w-20", brandColor: "#FF9900" },
-  { name: "Google Cloud", logo: "https://cdn.worldvectorlogo.com/logos/google-cloud-1.svg", width: "w-24", brandColor: "#4285F4" },
-  { name: "IBM", logo: "https://cdn.worldvectorlogo.com/logos/ibm.svg", width: "w-24", brandColor: "#0066FF" },
-  { name: "SAFe", logo: "https://qualtop.com/wp-content/uploads/2025/11/safe_SAI_Partner_Badge_Gold.jpg", width: "w-20", brandColor: "#FFB800" },
-  { name: "ISTQB", logo: "https://qualtop.com/wp-content/uploads/2025/11/istqb1.png", width: "w-28", brandColor: "#005b96" }
+  { name: "Oracle", logo: logoOracle, width: "w-28", brandColor: "#F80000" },
+  { name: "Databricks", logo: logoDatabricks, width: "w-28", brandColor: "#FF3621" },
+  { name: "AWS", logo: logoAws, width: "w-16", brandColor: "#FF9900" },
+  { name: "Google Cloud", logo: logoGoogleCloud, width: "w-24", brandColor: "#4285F4" },
+  { name: "IBM", logo: logoIbm, width: "w-20", brandColor: "#0066FF" },
+  { name: "SAFe", logo: logoSafe, width: "w-20", brandColor: "#FFB800" },
 ];
-
 
 const marqueePartners = [...partners, ...partners, ...partners, ...partners];
 
 export default function PartnersCarousel() {
   return (
-    <section className="relative w-full bg-[#050505] py-24 overflow-hidden border-t border-white/5">
+    <section className="relative w-full bg-[#050505] py-24 overflow-hidden">
       
       {/* 1. AMBIENTE */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-qualtop-orange/5 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8">
         
         {/* HEADER */}
-        <div className="text-center mb-16 px-6">
+        <div className="text-center mb-16 md:mb-20">
           <motion.span 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            className="text-qualtop-orange text-xs font-bold tracking-[0.3em] uppercase mb-4 block"
+            className="text-qualtop-orange text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-4 block"
           >
             Ecosistema
           </motion.span>
@@ -37,22 +43,24 @@ export default function PartnersCarousel() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white tracking-tight"
+            className="text-3xl md:text-5xl font-bold text-white tracking-tight"
           >
             Aliados Estratégicos
           </motion.h2>
         </div>
+        
+      </div>
 
-        {/* --- CAROUSEL TRACK --- */}
-        <div className="relative w-full overflow-hidden py-10 group">
+       {/* --- CAROUSEL TRACK --- */}
+       {/* Aumentamos el padding vertical a py-16 para que los reflejos tengan espacio de existir */}
+       <div className="relative w-full overflow-hidden py-16 group">
             
-            {/* MÁSCARAS DE DEGRADADO (Fades laterales para que no se corten de golpe) */}
-            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#050505] to-transparent z-20 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#050505] to-transparent z-20 pointer-events-none" />
+            {/* MÁSCARAS DE DEGRADADO */}
+            <div className="absolute left-0 top-0 bottom-0 w-32 md:w-64 bg-gradient-to-r from-[#050505] to-transparent z-20 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-32 md:w-64 bg-gradient-to-l from-[#050505] to-transparent z-20 pointer-events-none" />
 
             {/* TRACK DE MOVIMIENTO */}
-            {/* group-hover:pause -> Detiene todo el carrusel al poner el mouse encima */}
-            <div className="flex w-max animate-infinite-scroll group-hover:[animation-play-state:paused] items-center">
+            <div className="flex w-max animate-infinite-scroll group-hover:[animation-play-state:paused] items-center gap-16 md:gap-24 px-8">
                 {marqueePartners.map((partner, index) => (
                     <PartnerLogo key={index} partner={partner} />
                 ))}
@@ -60,64 +68,46 @@ export default function PartnersCarousel() {
 
         </div>
 
-      </div>
-
       {/* KEYFRAMES */}
       <style>{`
         @keyframes infinite-scroll {
           from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
+          to { transform: translateX(-50%); } 
         }
         .animate-infinite-scroll {
-          animation: infinite-scroll 40s linear infinite;
+          animation: infinite-scroll 50s linear infinite; 
         }
       `}</style>
     </section>
   );
 }
 
-// --- LOGO FLOTANTE SIN TARJETA ---
+// --- LOGO CON EFECTO APPLE (Reflejo 3D) ---
 const PartnerLogo = ({ partner }) => {
   return (
-    // Espaciado generoso entre logos (mx-10 md:mx-16)
-    <div className="relative mx-10 md:mx-16 group/logo cursor-pointer py-4">
+    <div className="relative group/logo cursor-pointer flex-shrink-0 flex items-center justify-center h-24 overflow-visible">
       
-      {/* 1. BACKLIGHT (Luz trasera) 
-          Solo aparece en hover, usando el color de la marca. 
-          Al no tener tarjeta, esto crea un efecto de "halo" detrás del logo.
-      */}
+      {/* EL RESPLANDOR TRASERO */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full opacity-0 group-hover/logo:opacity-40 transition-opacity duration-500 blur-[30px]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 opacity-0 group-hover/logo:opacity-30 transition-opacity duration-700 blur-[25px] rounded-full scale-150"
         style={{ backgroundColor: partner.brandColor }}
       />
 
-      {/* 2. EL LOGO */}
+      {/* EL LOGO PURO CON HOVER DE COLOR */}
       <img 
           src={partner.logo} 
-          alt={partner.name}
+          alt={`Logo de ${partner.name}`}
           className={`
-            ${partner.width} h-auto object-contain transition-all duration-500 relative z-10
+            ${partner.width} max-h-12 object-contain relative z-10 
+            transition-all duration-500 ease-out
             
-            /* ESTADO NORMAL (Fantasma): 
-               - Grayscale (blanco y negro)
-               - Brightness bajo (gris oscuro)
-               - Opacidad media (semi-invisible)
-            */
-            filter grayscale brightness-[0.5] opacity-40 contrast-[0.8]
+            /* ESTADO NORMAL: Blanco/Grisáceo semi-transparente */
+            brightness-0 invert opacity-40
             
-            /* ESTADO HOVER (Encendido): 
-               - Full Color
-               - Brillo total
-               - Escala un poco más grande
-               - Drop Shadow del color de la marca
-            */
-            group-hover/logo:filter-none 
-            group-hover/logo:opacity-100 
-            group-hover/logo:scale-110 
-            group-hover/logo:drop-shadow-[0_0_15px_${partner.brandColor}80]
+            /* ESTADO HOVER: Quitamos los filtros para que regrese a su color original */
+            group-hover/logo:brightness-100 group-hover/logo:invert-0 group-hover/logo:opacity-100 group-hover/logo:scale-110 group-hover/logo:-translate-y-3
           `}
       />
-      
     </div>
   );
 };

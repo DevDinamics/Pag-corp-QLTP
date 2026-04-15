@@ -1,9 +1,9 @@
 import { createClient } from '@sanity/client'
-// CORRECCIÓN: Usamos la importación con llaves { }
+
 import { createImageUrlBuilder } from '@sanity/image-url' 
 
 export const client = createClient({
-  projectId: 'vpjbifnb', // <--- ¡IMPORTANTE! Pon tu ID real aquí (k4j5l6...)
+  projectId: 'vpjbifnb', 
   dataset: 'production',
   useCdn: false, 
   apiVersion: '2024-01-01',

@@ -71,3 +71,12 @@ body, html {
   background-color: #FF4D00; /* Naranja Qualtop con 30% de opacidad */
   color: #ffffff; /* Mantiene el texto blanco para legibilidad */
 }
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; filter: blur(15px); }
+  50% { opacity: 1; filter: blur(25px); }
+}
+
+.glow-effect {
+  animation: pulse-glow 3s ease-in-out infinite;
+}

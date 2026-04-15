@@ -7,21 +7,21 @@ const services = [
     id: "01",
     title: "Reducción de Riesgos",
     desc: "Blindaje de sistemas críticos.",
-    details: "Arquitectura de seguridad activa y redundancia de datos para asegurar continuidad operativa 24/7.",
+    details: "Reducimos riesgos críticos en sistemas y datos que sostienen la operación.",
     icon: <ShieldAlert size={24} />,
   },
   {
     id: "02",
     title: "Interconexión Total",
     desc: "Eliminación de silos de datos.",
-    details: "Unificamos plataformas legacy con arquitecturas modernas para un flujo de información en tiempo real.",
+    details: "Conectamos sistemas, datos y procesos para recuperar visibilidad y control.",
     icon: <Share2 size={24} />,
   },
   {
     id: "03",
     title: "Inteligencia Artificial",
     desc: "Decisiones automatizadas.",
-    details: "Modelos predictivos que transforman datos crudos en estrategias de negocio escalables.",
+    details: "Activamos IA para escalar, automatizar decisiones y aumentar la inteligencia organizacional.",
     icon: <Cpu size={24} />,
   }
 ];

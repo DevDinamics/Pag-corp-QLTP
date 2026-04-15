@@ -1,5 +1,6 @@
 {
   "name": "qualtop-web-",
+  "type": "module",
   "private": true,
   "version": "1.0.0",
   "main": "package.json",
@@ -15,7 +16,11 @@
     "sanity"
   ],
   "dependencies": {
+    "@portabletext/block-tools": "^5.1.0",
+    "@sanity/block-tools": "^3.70.0",
+    "@sanity/client": "^7.17.0",
     "@sanity/vision": "^5.4.0",
+    "jsdom": "^28.1.0",
     "react": "^19.1",
     "react-dom": "^19.1",
     "sanity": "^5.4.0",

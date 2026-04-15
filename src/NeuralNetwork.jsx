@@ -1,13 +1,17 @@
-import React, { useRef, useMemo } from 'react'
+import React, { useRef, useMemo, useEffect, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-// ================= CONFIGURACIÓN =================
+// ================= OPTIMIZACIÓN ADAPTATIVA =================
+// Detectamos si es pantalla de celular para bajar la carga gráfica
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
 const GRID_WIDTH = 160       
 const GRID_DEPTH = 80       
-const GRID_DENSITY = 0.7    
-const POINT_COUNT = 24000    
-const FLOATING_COUNT = 400   
+// En móvil hacemos la red menos densa para no quemar el procesador
+const GRID_DENSITY = isMobile ? 1.5 : 0.7    
+const POINT_COUNT = isMobile ? 6000 : 24000    
+const FLOATING_COUNT = isMobile ? 100 : 400   
 
 const COLOR_PRIMARY = new THREE.Color('#FF2A00') 
 const COLOR_SECONDARY = new THREE.Color('#FF5500') 
@@ -29,11 +33,9 @@ export default function NeuralNetwork() {
   const gridRef = useRef()
   const floatingRef = useRef()
   
-
   const smoothedMouse = useRef(new THREE.Vector3(0, -8, 0)) // X, Y, Z (Mundo)
   const mouseMoved = useRef(false)
   
-
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 8), []) // Plano a la altura y=-8
   const target = useMemo(() => new THREE.Vector3(), [])
@@ -92,21 +94,19 @@ export default function NeuralNetwork() {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
 
-    
-    raycaster.setFromCamera(mouse, camera)
-    
- 
-    if (raycaster.ray.intersectPlane(plane, target)) {
-        if (!mouseMoved.current) {
-            smoothedMouse.current.copy(target) 
-            mouseMoved.current = true
-        } else {
-           
-            smoothedMouse.current.x += (target.x - smoothedMouse.current.x) * 0.1
-            smoothedMouse.current.z += (target.z - smoothedMouse.current.z) * 0.1
+    // Solo calculamos el raycaster si NO estamos en un celular (ahorro masivo de CPU)
+    if (!isMobile) {
+        raycaster.setFromCamera(mouse, camera)
+        if (raycaster.ray.intersectPlane(plane, target)) {
+            if (!mouseMoved.current) {
+                smoothedMouse.current.copy(target) 
+                mouseMoved.current = true
+            } else {
+                smoothedMouse.current.x += (target.x - smoothedMouse.current.x) * 0.1
+                smoothedMouse.current.z += (target.z - smoothedMouse.current.z) * 0.1
+            }
         }
     }
-
     
     const mX = smoothedMouse.current.x
     const mZ = smoothedMouse.current.z
@@ -129,12 +129,12 @@ export default function NeuralNetwork() {
         
         let mouseInfluence = 0
         
-        if (mouseMoved.current) {
-          
+        // El efecto de la ola del cursor solo se aplica en escritorio
+        if (!isMobile && mouseMoved.current) {
           if (Math.abs(x - mX) < radius && Math.abs(z - mZ) < radius) {
               const dx = x - mX
               const dz = z - mZ
-              const distSq = dx * dx + dz * dz // Distancia al cuadrado (más rápido)
+              const distSq = dx * dx + dz * dz 
               
               if (distSq < radius * radius) {
                 const dist = Math.sqrt(distSq)
@@ -173,7 +173,7 @@ export default function NeuralNetwork() {
           <bufferAttribute attach="attributes-color" array={gridData.colors} count={POINT_COUNT} itemSize={3} />
         </bufferGeometry>
         <pointsMaterial 
-          size={0.22} 
+          size={isMobile ? 0.35 : 0.22} // Puntos ligeramente más grandes en móvil para compensar que hay menos
           vertexColors 
           transparent={false} 
           blending={THREE.NormalBlending} 

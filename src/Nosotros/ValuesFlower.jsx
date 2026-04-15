@@ -34,7 +34,7 @@ const FlyingWord = ({ item, range, progress, isMobile }) => {
   const opacity = useTransform(progress, [range[0], range[0] + 0.1, range[1] - 0.05, range[1]], [0, 1, 1, 0]);
   
   // Escala Dinámica
-  const maxScale = isMobile ? 2.5 : 3.5;
+  const maxScale = isMobile ? 1.5 : 2.0;
   const scale = useTransform(progress, [range[0], range[1]], [0.2, maxScale]);
   
   // Profundidad de Campo (DOF)
@@ -60,7 +60,7 @@ const FlyingWord = ({ item, range, progress, isMobile }) => {
         x: `calc(-50% + ${item.pos.x})`,
         y: `calc(-50% + ${item.pos.y})`,
       }}
-      className="absolute pointer-events-none font-sans font-black whitespace-nowrap text-4xl sm:text-5xl md:text-7xl tracking-tighter leading-none mix-blend-screen"
+      className="absolute pointer-events-none font-sans font-black whitespace-nowrap text-2xl sm:text-3xl md:text-5xl tracking-tighter leading-none mix-blend-screen"
     >
        {item.title}
     </motion.div>

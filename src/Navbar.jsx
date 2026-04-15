@@ -4,9 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import FullScreenMenu from './FullScreenMenu';
 
+// 1. IMPORTAMOS EL LOGO OFICIALMENTE PARA VITE
+import logoQualtop from './assets/logos/Logo2Qualtop.png';
+
 // --- COMPONENTE: HAMBURGUESA ---
 const CustomHamburger = ({ onClick, className }) => (
-  <button onClick={onClick} className={`group flex flex-col items-end gap-[5px] p-2 hover:opacity-80 transition-opacity ${className}`}>
+  <button 
+    aria-label="Abrir menú de navegación" 
+    onClick={onClick} 
+    className={`group flex flex-col items-end gap-[5px] p-2 hover:opacity-80 transition-opacity ${className}`}
+  >
     <span className="w-6 h-[2px] bg-white transition-all duration-300 group-hover:bg-qualtop-orange group-hover:w-8" />
     <span className="w-4 h-[2px] bg-white transition-all duration-300 group-hover:bg-qualtop-orange group-hover:w-6" />
   </button>
@@ -101,10 +108,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* NAVBAR GLASS DARK PRO 
-         - Top: Transparente (para ver el fondo 3D limpio).
-         - Scrolled: Fondo negro al 70% + Blur fuerte (Efecto Vidrio Ahumado).
-      */}
+      
       <nav 
         className={`fixed left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)]
         w-[95%] md:max-w-7xl rounded-full
@@ -119,9 +123,10 @@ export default function Navbar() {
           {/* LOGO */}
           <div className="flex items-center cursor-pointer group z-50 shrink-0">
             <Link to="/">
-              <div className="relative w-24 md:w-28 transition-all duration-500">
+              <div className="relative w-32 md:w-40 transition-all duration-500">
                 <img 
-                  src="https://qualtop.com/wp-content/uploads/2025/09/Q_Logo.svg" 
+                  // 2. USAMOS LA VARIABLE DEL LOGO QUE IMPORTAMOS ARRIBA
+                  src={logoQualtop} 
                   alt="Qualtop Logo" 
                   className="w-full h-auto object-contain group-hover:brightness-125 transition-all duration-500" 
                 />
@@ -150,7 +155,7 @@ export default function Navbar() {
                     )}
                   </Link>
 
-                  {/* DROPDOWN (Glass Dark) */}
+                  
                   <AnimatePresence>
                     {item.hasDropdown && activeDropdown === index && (
                       <motion.div 
@@ -160,9 +165,9 @@ export default function Navbar() {
                         transition={{ duration: 0.2 }}
                         className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[340px]"
                       >
-                        {/* Fondo semi-transparente con blur */}
+                        
                         <div className="bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl p-2 relative">
-                           {/* Triángulo decorativo */}
+                          
                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0a0a0a] border-t border-l border-white/10 rotate-45"></div>
                           
                           <div className="flex flex-col gap-1 relative z-10">
@@ -199,8 +204,8 @@ export default function Navbar() {
                 onClick={() => navigate('/contact-home')}
                 className={`hidden lg:block font-bold py-2.5 px-6 rounded-full transition-all text-xs tracking-wider active:scale-95
                   ${isScrolled 
-                    ? 'bg-white text-black hover:bg-qualtop-orange hover:text-white' // Botón sólido al bajar
-                    : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white hover:text-black' // Botón cristal arriba
+                    ? 'bg-white text-black hover:bg-qualtop-orange hover:text-white' 
+                    : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white hover:text-black' 
                   }`}
             >
                 CONTACTO
@@ -209,9 +214,10 @@ export default function Navbar() {
             <div className={`h-6 w-[1px] hidden md:block transition-colors ${isScrolled ? 'bg-white/10' : 'bg-white/20'}`}></div>
 
             <button 
+              aria-label="Abrir buscador"
               onClick={() => setSearchOpen(true)}
               className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
-              aria-label="Buscar"
+              
             >
               <Search size={20} />
             </button>

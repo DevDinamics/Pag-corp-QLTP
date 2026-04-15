@@ -1,16 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle2, Mail, Phone, Loader2, AlertCircle } from 'lucide-react';
-import emailjs from '@emailjs/browser';
 
-// --- CONFIGURACIÓN EMAILJS ---
-const EMAIL_CONFIG = {
-  SERVICE_ID: 'service_0t7rujq',
-  TEMPLATE_ID: 'template_hx9719f',
-  PUBLIC_KEY: 'OlKg1l5iedr6UKUvd',
-};
 
-// --- INPUT GLASS ---
 const InputGroup = ({ label, name, type = "text", placeholder, required = false, isTextArea = false }) => {
   return (
     <div className="group relative">
@@ -19,7 +11,6 @@ const InputGroup = ({ label, name, type = "text", placeholder, required = false,
           name={name}
           required={required}
           placeholder=" " 
-          // CAMBIO: bg-white/5 para efecto cristal interno
           className="peer w-full bg-white/5 text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:bg-white/10 transition-all duration-300 min-h-[120px] resize-none text-base font-light placeholder-transparent backdrop-blur-sm"
         />
       ) : (
@@ -28,7 +19,6 @@ const InputGroup = ({ label, name, type = "text", placeholder, required = false,
           name={name}
           required={required}
           placeholder=" "
-          // CAMBIO: bg-white/5
           className="peer w-full bg-white/5 text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:bg-white/10 transition-all duration-300 text-base font-light placeholder-transparent backdrop-blur-sm"
         />
       )}
@@ -42,18 +32,16 @@ const InputGroup = ({ label, name, type = "text", placeholder, required = false,
   );
 };
 
-// --- SELECT GLASS ---
+
 const SelectGroup = ({ label, name, options, required = false }) => (
   <div className="group relative">
     <select 
       name={name}
       required={required}
       defaultValue=""
-      // CAMBIO: bg-white/5 (Nota: las opciones <option> siempre son sólidas en HTML estándar)
       className="peer w-full bg-white/5 text-white border border-white/10 rounded-lg px-4 py-4 pt-6 outline-none focus:border-qualtop-orange focus:ring-1 focus:ring-qualtop-orange focus:bg-white/10 transition-all duration-300 appearance-none cursor-pointer text-base font-light backdrop-blur-sm"
     >
       <option value="" disabled className="text-gray-500"></option>
-      {/* Fondo sólido negro para las opciones, ya que el glass no funciona dentro del dropdown nativo */}
       {options.map((opt, i) => <option key={i} value={opt} className="bg-[#111] text-white py-2">{opt}</option>)}
     </select>
     <label className="absolute left-4 top-1 text-xs text-gray-400 transition-all duration-300 pointer-events-none">
@@ -69,43 +57,57 @@ export default function ContactSection() {
   const form = useRef();
   const [formState, setFormState] = useState('idle');
 
-  const sendEmail = (e) => {
+
+  const sendEmail = async (e) => {
     e.preventDefault();
     setFormState('loading');
 
-    emailjs.sendForm(
-      EMAIL_CONFIG.SERVICE_ID, 
-      EMAIL_CONFIG.TEMPLATE_ID, 
-      form.current, 
-      EMAIL_CONFIG.PUBLIC_KEY
-    )
-    .then((result) => {
-        console.log('Email enviado:', result.text);
+ 
+    const formData = new FormData(form.current);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+     
+      const response = await fetch('https://qualtop.com/enviar_correo.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+    
+      if (result.status === 'success') {
+        console.log('¡Email enviado con éxito por cPanel!');
         setFormState('success');
         e.target.reset();
         setTimeout(() => setFormState('idle'), 5000);
-    }, (error) => {
-        console.error('Error al enviar:', error.text);
+      } else {
+        console.error('Error del servidor:', result.message);
         setFormState('error');
         setTimeout(() => setFormState('idle'), 4000);
-    });
+      }
+
+    } catch (error) {
+      console.error('Error de red o conexión:', error);
+      setFormState('error');
+      setTimeout(() => setFormState('idle'), 4000);
+    }
   };
 
   return (
     <section id="contacto" className="relative w-full bg-[#050505] py-16 md:py-24 px-4 md:px-6 overflow-hidden border-t border-white/5 scroll-mt-20">
       
-      {/* FONDO DECORATIVO (Importante para que el Glass se note) */}
-      {/* Orbe Naranja */}
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-qualtop-orange/20 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-40 translate-x-1/3 translate-y-1/3"></div>
-      {/* Orbe Azul (Para contraste frío) */}
-      <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen opacity-30"></div>
-      {/* Ruido para textura */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-qualtop-orange/20 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-40 translate-x-1/3 translate-y-1/3"></div>
+      <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen opacity-30"></div>
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start relative z-10">
         
-        {/* --- COLUMNA IZQUIERDA: TEXTO --- */}
+        
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -132,24 +134,15 @@ export default function ContactSection() {
                </div>
                <div>
                  <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">Correo Electrónico</p>
-                 <p className="text-white text-base font-medium group-hover:text-qualtop-orange transition-colors">hola@qualtop.com</p>
+                 <p className="text-white text-base font-medium group-hover:text-qualtop-orange transition-colors">info@qualtop.com</p>
                </div>
             </a>
             
-            <a href="tel:+525512345678" className="flex items-center gap-4 group w-fit">
-               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-qualtop-orange group-hover:text-white text-gray-400 transition-all duration-300 border border-white/5">
-                 <Phone size={20} />
-               </div>
-               <div>
-                 <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">Línea Directa</p>
-                 <p className="text-white text-base font-medium group-hover:text-qualtop-orange transition-colors">+52 (55) 1234 5678</p>
-               </div>
-            </a>
+            
           </div>
         </motion.div>
 
-
-        {/* --- COLUMNA DERECHA: FORMULARIO GLASS --- */}
+        
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -157,34 +150,25 @@ export default function ContactSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="relative w-full"
         >
-          {/* MAGIA DEL GLASSMORPHISM AQUÍ:
-              - bg-white/[0.03]: Fondo blanco muy transparente (3%).
-              - backdrop-blur-xl: Desenfoca fuertemente lo de atrás.
-              - border-white/10: Borde sutil.
-              - shadow-2xl: Sombra profunda para "flotar".
-          */}
           <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] relative overflow-hidden group">
              
-             {/* Reflejo superior (Luz de borde) */}
              <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
-
-             {/* Línea naranja decorativa */}
              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-qualtop-orange to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
              <form ref={form} onSubmit={sendEmail} className="space-y-5 relative z-10">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <InputGroup name="user_name" label="Nombre completo" required />
-                  <InputGroup name="user_email" label="Correo electrónico" type="email" required />
+                  <InputGroup name="user_email" label="Correo electrónico corporativo" type="email" required />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <InputGroup name="company" label="Empresa" required />
-                  <InputGroup name="phone" label="Teléfono" type="tel" required />
+                  <InputGroup name="phone" label="Teléfono" type="tel" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <SelectGroup name="industry" label="Industria" options={["Banca & Finanzas", "Retail", "Manufactura", "Logística", "Tecnología", "Otro"]} required />
+                  <SelectGroup name="industry" label="Industria" options={["Banca & Finanzas", "Retail", "Manufactura", "Logística", "Tecnología", "Otro"]} />
                   <SelectGroup name="service" label="Interés Principal" options={["Modernización de Apps", "Inteligencia Artificial", "QA & Testing", "Consultoría Cloud", "Staffing IT"]} required />
                 </div>
                 

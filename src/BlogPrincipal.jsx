@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Search, X, Loader2, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
-import { client, urlFor } from './client'; 
-
+import { client, urlFor } from './client'; // Ajusta la ruta de tu client si es necesario
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -19,26 +18,23 @@ export default function BlogHome() {
   const [posts, setPosts] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 9; 
+  const postsPerPage = 12; 
 
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 1. Obtener query de la URL directamente
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('q') || "";
-
 
   useEffect(() => { 
     window.scrollTo({ top: 0, behavior: 'instant' }); 
   }, [location.pathname, currentPage]); 
 
-  // Carga de datos inicial
   useEffect(() => {
     const query = `*[_type == "post"] | order(publishedAt desc) {
       title, shortTitle, slug, mainImage, publishedAt,
       "categories": categories[]->title,
-      "excerpt": body[0].children[0].text
+      "excerpt": array::join(body[0].children[].text, "")
     }`;
 
     client.fetch(query).then((data) => {
@@ -48,8 +44,8 @@ export default function BlogHome() {
           category: post.categories ? post.categories[0] : "Tecnología",
           date: new Date(post.publishedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
           image: post.mainImage 
-            ? urlFor(post.mainImage).width(800).height(500).url() 
-            : "https://placehold.co/800x500/111/FF4D00?text=Qualtop+Blog", 
+            ? urlFor(post.mainImage).width(800).url() 
+            : "https://placehold.co/800x500/111/FF4D00?text=Qualtop+Blog",
           excerpt: post.excerpt ? post.excerpt.substring(0, 100) + "..." : "Descubre las últimas tendencias..."
         }));
         setPosts(formattedPosts);
@@ -58,30 +54,23 @@ export default function BlogHome() {
       .catch((err) => { console.error(err); setLoading(false); });
   }, []);
 
-  
   const displayedPosts = useMemo(() => {
-    if (!searchQuery) return posts; // devuelve todoo
+    if (!searchQuery) return posts; 
 
     const lowerQuery = searchQuery.toLowerCase();
     return posts.filter(post => 
-      post.title.toLowerCase().includes(lowerQuery) || 
-      (post.excerpt && post.excerpt.toLowerCase().includes(lowerQuery)) ||
-      (post.category && post.category.toLowerCase().includes(lowerQuery))
+      post.title.toLowerCase().includes(lowerQuery)
     );
   }, [searchQuery, posts]);
-
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-
-  // 3. FUNCIÓN LIMPIAR SIMPLIFICADA
   const clearSearch = () => { 
     navigate('/blog'); 
   };
 
-  // Paginación sobre la lista calculada (displayedPosts)
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = displayedPosts.slice(indexOfFirstPost, indexOfLastPost);
@@ -90,6 +79,39 @@ export default function BlogHome() {
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // =================================================================
+  // FUNCIÓN NUEVA: PAGINACIÓN INTELIGENTE CON PUNTITOS (...)
+  // =================================================================
+  const getPaginationRange = () => {
+    // Si hay 6 páginas o menos, mostramos todas (no vale la pena acortar)
+    if (totalPages <= 6) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const leftSiblingIndex = Math.max(currentPage - 1, 1);
+    const rightSiblingIndex = Math.min(currentPage + 1, totalPages);
+
+    const showLeftDots = leftSiblingIndex > 2;
+    const showRightDots = rightSiblingIndex < totalPages - 2;
+
+    if (!showLeftDots && showRightDots) {
+      let leftItemCount = 4;
+      let leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
+      return [...leftRange, '...', totalPages];
+    }
+
+    if (showLeftDots && !showRightDots) {
+      let rightItemCount = 4;
+      let rightRange = Array.from({ length: rightItemCount }, (_, i) => totalPages - rightItemCount + 1 + i);
+      return [1, '...', ...rightRange];
+    }
+
+    if (showLeftDots && showRightDots) {
+      let middleRange = Array.from({ length: rightSiblingIndex - leftSiblingIndex + 1 }, (_, i) => leftSiblingIndex + i);
+      return [1, '...', ...middleRange, '...', totalPages];
+    }
   };
 
   if (loading) return (
@@ -132,7 +154,7 @@ export default function BlogHome() {
           </motion.p>
         </header>
 
-        {/* BARRA DE BÚSQUEDA ACTIVA (Solo visible si hay query) */}
+        {/* BARRA DE BÚSQUEDA ACTIVA */}
         <AnimatePresence>
           {searchQuery && (
             <motion.div 
@@ -150,7 +172,6 @@ export default function BlogHome() {
             </motion.div>
           )}
         </AnimatePresence>
-
 
         {displayedPosts.length > 0 ? (
           <>
@@ -172,9 +193,9 @@ export default function BlogHome() {
                       <div className="aspect-[16/10] overflow-hidden relative">
                          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 opacity-60"/>
                          <img 
-                           src={post.image} alt={post.title} 
-                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                         />
+                              src={post.image} alt={post.title} 
+                              className="w-full h-full object-contain bg-[#050505] transition-transform duration-700 group-hover:scale-105"
+                            />
                          <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg shadow-lg">
                             <span className="text-[10px] font-bold text-qualtop-orange uppercase tracking-wider">{post.category}</span>
                          </div>
@@ -204,19 +225,29 @@ export default function BlogHome() {
               ))}
             </motion.div>
 
-            {/* PAGINACIÓN */}
+            {/* PAGINACIÓN ACTUALIZADA */}
             {totalPages > 1 && (
               <div className="mt-24 flex justify-center items-center gap-4 relative z-50 pb-20">
                 <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#111] border border-white/10 text-white hover:border-qualtop-orange disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-white/5">
                   <ChevronLeft size={20} />
                 </button>
+                
                 <div className="flex gap-2 bg-[#111] p-2 rounded-xl border border-white/10">
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button key={i} onClick={() => paginate(i + 1)} className={`w-10 h-10 rounded-lg font-bold transition-all text-sm ${currentPage === i + 1 ? 'bg-qualtop-orange text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                      {i + 1}
+                  {getPaginationRange().map((page, index) => (
+                    <button 
+                      key={index} 
+                      onClick={() => typeof page === 'number' ? paginate(page) : null}
+                      disabled={page === '...'}
+                      className={`w-10 h-10 rounded-lg font-bold transition-all text-sm 
+                        ${currentPage === page ? 'bg-qualtop-orange text-white shadow-lg shadow-orange-500/20' : 
+                          page === '...' ? 'text-gray-500 cursor-default bg-transparent' : 
+                          'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                    >
+                      {page}
                     </button>
                   ))}
                 </div>
+
                 <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="h-12 px-6 flex items-center gap-2 rounded-xl bg-[#111] border border-white/10 text-white hover:border-qualtop-orange disabled:opacity-30 disabled:cursor-not-allowed transition-all text-xs font-bold uppercase tracking-widest hover:bg-white/5">
                   Siguiente <ChevronRight size={16} />
                 </button>

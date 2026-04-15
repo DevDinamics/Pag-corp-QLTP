@@ -88,13 +88,32 @@ export default function ContactForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  // --- FUNCIÓN CORREGIDA: AHORA SÍ CONECTA CON EL PHP ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setFormState('loading');
-    setTimeout(() => {
-      setFormState('success');
-      console.log("Datos enviados:", formData);
-    }, 2000);
+
+    try {
+      const respuesta = await fetch('https://qualtop.com/enviar_proyecto.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (respuesta.ok) {
+        setFormState('success');
+        setFormData({ nombre: '', email: '', empresa: '', telefono: '', industria: '', servicio: '', mensaje: '' });
+        
+        setTimeout(() => setFormState('idle'), 3000);
+      } else {
+        setFormState('idle');
+        alert("Error al enviar el mensaje. Código: " + respuesta.status);
+      }
+    } catch (error) {
+      console.error("Error completo:", error);
+      setFormState('idle');
+      alert("Error de conexión con el servidor.");
+    }
   };
 
   return (
@@ -108,10 +127,10 @@ export default function ContactForm() {
                Contáctanos
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-              Hablemos sobre tu <br/><span className="text-qualtop-orange">próximo reto.</span>
+              Hablemos sobre tu <br/><span className="text-qualtop-orange">gran proyecto.</span>
             </h2>
             <p className="text-gray-400 text-lg leading-relaxed mb-8">
-              Cuéntanos tus ideas o necesidades y nuestro equipo conectará contigo para encontrar la mejor solución tecnológica.
+              Cuéntanos tus ideas, retos o necesidades y nuestro equipo se pondrá en contacto contigo para encontrar la mejor solución. En Qualtop, cada conversación es el primer paso hacia una transformación real.
             </p>
             
             <div className="space-y-6 border-t border-white/10 pt-8">
@@ -121,18 +140,10 @@ export default function ContactForm() {
                    </div>
                    <div>
                      <p className="text-xs text-gray-500 uppercase tracking-wider">Correo</p>
-                     <p className="text-white font-medium group-hover:text-qualtop-orange transition-colors">hola@qualtop.com</p>
+                     <p className="text-white font-medium group-hover:text-qualtop-orange transition-colors">info@qualtop.com</p>
                    </div>
                 </div>
-                <div className="flex items-center gap-4 group cursor-pointer">
-                   <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-qualtop-orange/20 group-hover:text-qualtop-orange transition-all duration-300">
-                     <Phone size={20} className="text-white group-hover:text-qualtop-orange transition-colors" />
-                   </div>
-                   <div>
-                     <p className="text-xs text-gray-500 uppercase tracking-wider">Teléfono</p>
-                     <p className="text-white font-medium group-hover:text-qualtop-orange transition-colors">+52 (55) 1234 5678</p>
-                   </div>
-                </div>
+                
             </div>
           </motion.div>
         </div>
@@ -144,22 +155,21 @@ export default function ContactForm() {
             whileInView={{ opacity: 1, y: 0 }} 
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            // CAMBIO CLAVE AQUÍ: Quitamos el bg-[#0a0a0a], el borde y el shadow. Ahora es transparente.
             className="relative" 
           >
              <form onSubmit={handleSubmit} className="space-y-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <ProInput label="Nombre completo" name="nombre" value={formData.nombre} onChange={handleChange} required />
-                  <ProInput label="Correo electrónico" type="email" name="email" value={formData.email} onChange={handleChange} required />
+                  <ProInput label="Correo electrónico corporativo" type="email" name="email" value={formData.email} onChange={handleChange} required />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <ProInput label="Compañía / Empresa" name="empresa" value={formData.empresa} onChange={handleChange} required />
-                  <ProInput label="Número telefónico" type="tel" name="telefono" value={formData.telefono} onChange={handleChange} required />
+                  <ProInput label="Teléfono" type="tel" name="telefono" value={formData.telefono} onChange={handleChange} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <ProSelect label="Industria" name="industria" options={['Tecnología', 'Finanzas', 'Retail', 'Salud', 'Manufactura']} value={formData.industria} onChange={handleChange} required />
-                   <ProSelect label="Servicio de interés" name="servicio" options={['Software Development', 'AI Solutions', 'Consultoría TI', 'Staff Augmentation']} value={formData.servicio} onChange={handleChange} required />
+                   <ProSelect label="Industria" name="industria" options={['Tecnología', 'Finanzas', 'Retail', 'Otro']} value={formData.industria} onChange={handleChange} />
+                   <ProSelect label="Servicio de interés" name="servicio" options={['Modernización Tecnológica', 'Soluciones de negocio con IA']} value={formData.servicio} onChange={handleChange} required />
                 </div>
                 <ProTextArea label="Cuéntanos sobre tu reto..." name="mensaje" value={formData.mensaje} onChange={handleChange} required />
 
@@ -169,7 +179,7 @@ export default function ContactForm() {
                     <CheckCircle2 size={14} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 peer-checked:opacity-100 transition-opacity" />
                   </div>
                   <p className="text-xs text-gray-500 leading-relaxed">
-                    Al hacer click en enviar, apruebas a Qualtop el uso y distribución de tus datos personales. <a href="#" className="text-gray-400 hover:text-qualtop-orange underline decoration-1 underline-offset-2 transition-colors">Política de privacidad</a>.
+                    Al hacer click en enviar, apruebas a Qualtop el uso y distribución de tus datos personales. Para más información visita nuestra <a href="./aviso-privacidad" className="text-gray-400 hover:text-qualtop-orange underline decoration-1 underline-offset-2 transition-colors">Política de privacidad</a>.
                   </p>
                 </div>
 

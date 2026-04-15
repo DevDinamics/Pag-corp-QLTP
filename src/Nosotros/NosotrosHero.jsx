@@ -6,7 +6,7 @@ export default function NosotrosHero() {
   return (
     <section className="relative min-h-[90vh] flex flex-col justify-center pt-32 pb-20 px-6 max-w-7xl mx-auto overflow-hidden">
       
-      {/* 1. Subtítulo superior sutil */}
+      {/* 1. Subtítulo */}
       <motion.p 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -16,7 +16,7 @@ export default function NosotrosHero() {
         Pensado para entornos complejos y operaciones críticas.
       </motion.p>
 
-      {/* 2. Título Monumental (Efecto Pro Max) */}
+      {/* 2. Título */}
       <motion.h1 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -30,7 +30,7 @@ export default function NosotrosHero() {
         </span>
       </motion.h1>
 
-      {/* 3. Bloque de descripción y Botón (Copy exacto de tu captura) */}
+      {/* 3. Bloque de descripción */}
       <div className="max-w-4xl mt-8">
         <motion.p 
           initial={{ opacity: 0 }}

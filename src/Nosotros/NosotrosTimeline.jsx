@@ -1,20 +1,23 @@
 import React, { useRef } from 'react';
 import { motion, useScroll } from 'framer-motion'; // Quitamos useSpring
-import { Zap, Globe, Award, TrendingUp, Cpu, Server } from 'lucide-react';
+import { Rocket, Trophy, ShieldCheck, Cloud, FileCheck, CloudUpload, Cpu, BarChart3, Star, Database } from 'lucide-react';
 
-// --- DATOS (Sin cambios) ---
+
 const milestones = [
-  { year: '2006', title: 'Fundación', desc: 'Nace la visión de transformar la industria TI en México.', icon: Zap },
-  { year: '2010', title: 'Calidad CMMI', desc: 'Certificación internacional en procesos de software.', icon: Award },
-  { year: '2012', title: 'Partnerships', desc: 'Alianzas con líderes globales de nube e infraestructura.', icon: Globe },
-  { year: '2014', title: 'Premio Nacional', desc: 'Máximo galardón a la calidad y procesos en México.', icon: Award },
-  { year: '2018', title: 'IA Core', desc: 'Integración de IA en el núcleo de nuestras soluciones.', icon: Cpu },
-  { year: '2022', title: 'Evolución 2.0', desc: 'Nueva arquitectura de servicios multinube.', icon: Server },
-  { year: '2024', title: 'Liderazgo Latam', desc: 'Consolidación como líderes en modernización regional.', icon: TrendingUp },
-  { year: '2026', title: 'Futuro', desc: 'Definiendo la próxima era de la banca y retail.', icon: Zap },
+  { year: '2006', title: 'Fundación', desc: 'Nace la visión de transformar la industria TI en México.', icon: Rocket },
+  { year: '2014', title: 'Premio', desc: 'Premio Iberoamericano y premio nacional de calidad.', icon: Trophy },
+  { year: '2016', title: 'Premio', desc: 'Premio OCC mundial de recursos humanos.', icon: Trophy },
+  { year: '2017', title: 'Certificación', desc: 'Certificación ISO 27001', icon: ShieldCheck },
+  { year: '2020', title: 'AWS', desc: 'AWS.', icon: Cloud },
+  { year: '2021', title: 'Certificación', desc: 'Certificación ISO 37001', icon: FileCheck },
+  { year: '2023', title: 'Cloud Migration', desc: 'Cloud migration.', icon: CloudUpload },
+  { year: '2025', title: 'IBM', desc: 'IBM.', icon: Cpu },
+  { year: '2025', title: 'Data Analytics', desc: 'Data analytics.', icon: BarChart3 },
+  { year: '2025', title: 'Premier Partner Service', desc: 'Premier Partner Service.', icon: Star },
+  { year: '2025', title: 'Oracle Partner', desc: 'Oracle Partner.', icon: Database },
 ];
 
-// --- COMPONENTE DE FILA ---
+
 const MilestoneRow = ({ item, index }) => {
   return (
     <motion.div 
@@ -75,11 +78,11 @@ const MilestoneRow = ({ item, index }) => {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 md:w-8 md:h-8 bg-qualtop-orange/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         
-        {/* Conector Lateral */}
+       
         <motion.div 
            initial={{ scaleX: 0 }}
            whileInView={{ scaleX: 1 }}
-           viewport={{ once: false }} // IMPORTANTE: Para que se anime al subir y bajar
+           viewport={{ once: false }} 
            transition={{ duration: 0.4 }}
            className={`
              absolute top-1/2 h-[1px] bg-gradient-to-r from-qualtop-orange to-transparent
@@ -90,7 +93,7 @@ const MilestoneRow = ({ item, index }) => {
         />
       </div>
 
-      {/* 3. AÑO GIGANTE (Solo Desktop) */}
+   
       <div className={`hidden md:flex ${index % 2 === 0 ? 'justify-start order-3' : 'justify-end order-1'}`}>
         <motion.span 
           initial={{ color: 'transparent', opacity: 0.3 }} 
@@ -112,11 +115,10 @@ const MilestoneRow = ({ item, index }) => {
 export default function VerticalTimeline() {
   const containerRef = useRef(null);
   
-  // Conexión DIRECTA al scroll (Sin físicas, modo raw)
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    // Ajuste fino: Empieza a llenarse cuando el contenedor entra al centro
-    // Termina de llenarse cuando el final del contenedor llega al centro
+  
     offset: ["start center", "end center"]
   });
 

@@ -11,7 +11,6 @@ export default function ContactHome() {
   const scrollToForm = () => {
     const formSection = document.getElementById('contact-form-section');
     if (formSection) {
-      // Offset de -50px para que no quede pegado al borde superior al hacer scroll
       const yOffset = -50; 
       const y = formSection.getBoundingClientRect().top + window.scrollY + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
@@ -63,7 +62,7 @@ export default function ContactHome() {
                 Selecciona tu interés y conectemos con el experto adecuado.
               </p>
 
-              {/* Botón de Acción con Feedback Táctil */}
+           
               <button 
                 onClick={scrollToForm}
                 className="
@@ -105,11 +104,11 @@ export default function ContactHome() {
            </div>
         </section>
 
-        {/* --- FAQ --- */}
-        {/* Separador visual sutil antes de las FAQ */}
+       {/* --- FAQ --- */}
+        {/* Separador visual sutil antes de las FAQ 
         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent max-w-7xl mx-auto" />
         
-        <FAQSection />
+        <FAQSection /> */}
 
       </div>
 

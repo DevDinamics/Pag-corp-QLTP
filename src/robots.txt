@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Desactivar rastreo de rutas internas 
+Disallow: /beta/
+Disallow: /test/
+
+# Enlace al mapa del sitio (Importante para Google)
+Sitemap: https://qualtop.com/sitemap.xml
