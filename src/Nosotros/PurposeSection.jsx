@@ -48,7 +48,7 @@ export default function PurposeSectionTech() {
                </span>
             </div>
             {/* Ajuste de tamaño de texto para móvil (text-4xl) y desktop (lg:text-6xl) */}
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium text-white tracking-tight leading-tight">
+            <h2 className="text-3xl md:text-5xl lg:text-5xl font-medium text-white tracking-tight leading-tight">
               Nuestro Propósito
             </h2>
           </motion.div>

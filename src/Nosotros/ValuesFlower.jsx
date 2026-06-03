@@ -6,14 +6,14 @@ const centerValue = 'Humildad';
 
 
 const satellites = [
-  { id: 1, title: 'Liderazgo',       pos: { x: '-25vw', y: '-22vh' } },
-  { id: 2, title: 'Agilidad',        pos: { x: '30vw',  y: '-12vh' } },
-  { id: 3, title: 'Calidad',         pos: { x: '-32vw', y: '20vh' } },
-  { id: 4, title: 'Respeto',         pos: { x: '25vw',  y: '25vh' } },
-  { id: 5, title: 'Responsabilidad', pos: { x: '-15vw', y: '30vh' } },
-  { id: 6, title: 'Equipo',          pos: { x: '32vw',  y: '10vh' } },
-  { id: 7, title: 'Innovación',      pos: { x: '12vw',  y: '-25vh' } }, 
-  { id: 8, title: 'Pasión',          pos: { x: '-20vw', y: '5vh' } },
+  { id: 1, title: 'Liderazgo',       pos: { x: '-25vw', y: '-22vh' }, mpos: { x: '-28vw', y: '-18vh' } },
+  { id: 2, title: 'Agilidad',        pos: { x: '30vw',  y: '-12vh' }, mpos: { x: '22vw',  y: '-15vh' } },
+  { id: 3, title: 'Calidad',         pos: { x: '-32vw', y: '20vh'  }, mpos: { x: '-20vw', y: '18vh'  } },
+  { id: 4, title: 'Respeto',         pos: { x: '25vw',  y: '25vh'  }, mpos: { x: '18vw',  y: '22vh'  } },
+  { id: 5, title: 'Responsabilidad', pos: { x: '-15vw', y: '30vh'  }, mpos: { x: '-10vw', y: '28vh'  } },
+  { id: 6, title: 'Equipo',          pos: { x: '32vw',  y: '10vh'  }, mpos: { x: '22vw',  y: '10vh'  } },
+  { id: 7, title: 'Innovación',      pos: { x: '12vw',  y: '15vh'  }, mpos: { x: '8vw',   y: '-22vh' } },
+  { id: 8, title: 'Pasión',          pos: { x: '-20vw', y: '5vh'   }, mpos: { x: '-18vw', y: '5vh'   } },
 ];
 
 // --- HOOK ---
@@ -30,22 +30,20 @@ const useIsMobile = () => {
 
 // --- PALABRA FLOTANTE ---
 const FlyingWord = ({ item, range, progress, isMobile }) => {
-  // Opacidad
   const opacity = useTransform(progress, [range[0], range[0] + 0.1, range[1] - 0.05, range[1]], [0, 1, 1, 0]);
   
-  // Escala Dinámica
-  const maxScale = isMobile ? 1.5 : 2.0;
+  const maxScale = isMobile ? 1.0 : 2.0;
   const scale = useTransform(progress, [range[0], range[1]], [0.2, maxScale]);
   
-  // Profundidad de Campo (DOF)
   const blur = useTransform(progress, [range[0], range[0] + 0.2, range[1] - 0.2, range[1]], [15, 0, 0, 25]);
   const filter = useTransform(blur, (v) => `blur(${v}px)`);
   
-  // Orden Z
   const zIndex = useTransform(progress, [range[0], range[1]], [10, 40]);
   
-  // Color
   const color = useTransform(progress, [range[0], range[0] + 0.3, range[1]], ["#222", "#fff", "#fff"]);
+
+  const posX = isMobile ? item.mpos.x : item.pos.x;
+  const posY = isMobile ? item.mpos.y : item.pos.y;
 
   return (
     <motion.div
@@ -55,12 +53,13 @@ const FlyingWord = ({ item, range, progress, isMobile }) => {
         filter,
         color,
         zIndex,
+        position: 'absolute',
         top: '50%',
         left: '50%',
-        x: `calc(-50% + ${item.pos.x})`,
-        y: `calc(-50% + ${item.pos.y})`,
+        x: `calc(-50% + ${posX})`,
+        y: `calc(-50% + ${posY})`,
       }}
-      className="absolute pointer-events-none font-sans font-black whitespace-nowrap text-2xl sm:text-3xl md:text-5xl tracking-tighter leading-none mix-blend-screen"
+      className="pointer-events-none font-sans font-black whitespace-nowrap text-4xl sm:text-3xl md:text-5xl tracking-tighter leading-none mix-blend-screen"
     >
        {item.title}
     </motion.div>
@@ -83,9 +82,7 @@ export default function ValuesScrollTypo() {
   const coreFilter = useTransform(coreBlur, (v) => `blur(${v}px)`);
 
   return (
-
     <section ref={targetRef} className="relative h-[250vh] bg-[#050505] font-sans z-10">
-      
 
       <div className="sticky -top-[1px] h-[calc(100vh+2px)] w-full overflow-hidden flex items-center justify-center perspective-[1000px] bg-[#050505]">
          
@@ -98,18 +95,20 @@ export default function ValuesScrollTypo() {
             <span className="text-qualtop-orange text-[10px] md:text-xs font-black tracking-[0.4em] uppercase block mb-3 opacity-90 drop-shadow-[0_0_15px_rgba(255,107,43,0.8)]">
                 NUESTROS
             </span>
-            <h2 className="text-xl md:text-3xl font-medium text-white tracking-[0.2em] uppercase drop-shadow-[0_4px_20px_rgba(0,0,0,1)]">
+            <h2 className="text-xl md:text-5xl font-medium text-white tracking-[0.2em] uppercase drop-shadow-[0_4px_20px_rgba(0,0,0,1)]">
                 Valores
             </h2>
          </div>
 
-         {/* --- PALABRA CENTRAL (CORE) --- */}
-         <motion.h1 
+         {/* --- PALABRA CENTRAL (CORE) — posicionada con inset-0 + flex para centrado perfecto --- */}
+         <motion.div
            style={{ opacity: coreOpacity, scale: coreScale, filter: coreFilter }}
-           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-6xl sm:text-7xl md:text-[8rem] font-black text-white tracking-tighter text-center px-4 mix-blend-screen"
+           className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none mix-blend-screen"
          >
-            {centerValue}
-         </motion.h1>
+           <h1 className="text-4xl sm:text-5xl md:text-[8rem] font-black text-white tracking-tighter text-center">
+             {centerValue}
+           </h1>
+         </motion.div>
 
          {/* --- PALABRAS SATÉLITE --- */}
          {satellites.map((item, i) => {

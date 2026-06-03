@@ -20,7 +20,8 @@ const footerLinks = {
     { label: "Política Organizacional de Seguridad de la Información", href: "/politica-seguridad" },
     { label: "Política Antisoborno", href: "/politicas-antisoborno" },
     { label: "Línea de denuncia", href: "/linea-de-denuncia" },
-    { label: "Aviso de privacidad", href: "/aviso-privacidad" }
+    { label: "Aviso de privacidad", href: "/aviso-privacidad" },
+    { label: "Política de Calidad", href: "/politica-calidad" }
   ]
 };
 
@@ -79,7 +80,7 @@ export default function Footer() {
             
             {/* Sección Legal integrada según imagen */}
             <div className="mt-12">
-                <h4 className="text-qualtop-orange font-bold text-lg mb-6">Legal</h4>
+                <h4 className="text-qualtop-orange font-bold text-lg mb-6">Compliance</h4>
                 <ul className="space-y-4">
                 {footerLinks.legal.map((link, i) => (
                     <li key={i}>

@@ -80,3 +80,9 @@ body, html {
 .glow-effect {
   animation: pulse-glow 3s ease-in-out infinite;
 }
+
+/* CAPTCHA OCULTO */
+
+.grecaptcha-badge {
+  bottom: 90px !important; /* Puedes cambiar el 80px si necesitas que suba más o menos */
+}

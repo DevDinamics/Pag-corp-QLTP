@@ -5,6 +5,7 @@ import {
   ChevronDown, Mail, MapPin, Zap, BrainCircuit 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import logo from './assets/logos/Logo2Qualtop.png';
 
 export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
   
@@ -34,8 +35,9 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
   const legalLinks = [
     { title: "Política de Seguridad de la información", href: "/politica-seguridad" }, 
     { title: "Política Antisoborno", href: "/politicas-antisoborno" }, 
-    { title: "Línea de denuncia", href: "/linea-de-denuncia" },
-    { title: "Política de Calidad", href: "/politica-calidad" }
+    { title: "Política de Calidad", href: "/politica-calidad" },
+    { title: "Línea de denuncia", href: "/linea-de-denuncia" }
+
   ];
 
   // Mejora: Arreglo de objetos para las redes sociales (Mejora el SEO y Accesibilidad)
@@ -81,7 +83,7 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
               <Link to="/" onClick={onClose} className="flex items-center group cursor-pointer" aria-label="Ir al inicio">
                 <div className={`relative transition-all duration-500 ${isScrolled ? 'w-24' : 'w-28 md:w-32'}`}>
                   {/* Si tienes este logo en local, te sugiero cambiarlo a una importación como hicimos en el Navbar */}
-                  <img src="https://qualtop.com/wp-content/uploads/2025/09/Q_Logo.svg" alt="Qualtop Logo" className="w-full h-auto object-contain" />
+                  <img src={logo} alt="Qualtop Logo" className="w-full h-auto object-contain" />
                 </div>
               </Link>
 
@@ -125,7 +127,7 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
                 {/* COLUMNA DERECHA: LEGAL & SOCIAL */}
                 <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6, duration: 0.8 }} className="flex flex-col items-end gap-16">
                     <div className="flex flex-col gap-8 w-full">
-                        <p className="text-qualtop-orange font-bold tracking-[0.4em] text-[15px] uppercase opacity-60 text-right">SOPORTE & LEGAL</p>
+                        <p className="text-qualtop-orange font-bold tracking-[0.4em] text-[15px] uppercase opacity-60 text-right">compliance</p>
                         {legalLinks.map((link, i) => (
                             <Link 
                                 key={i} 

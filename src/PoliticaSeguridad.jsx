@@ -101,6 +101,10 @@ export default function PoliticaSeguridad() {
             En <strong className="text-white font-semibold">Qualtop</strong> nos comprometemos a preservar y proteger la información contra amenazas internas y externas, mediante procesos de evaluación de riesgos, mejora continua, objetivos de seguridad y aspectos legales.
           </p>
 
+          <p className="text-xl md:text-2xl text-gray-300 leading-relaxed font-light mb-16 relative z-10 max-w-4xl">
+            En la organización nos comprometemos a preservar y proteger la información contra amenazas internas y externas, mediante procesos de evaluación de riesgos, mejora continua, objetivos de seguridad de la información y aspectos legales, asegurando la disponibilidad, integridad y confidencialidad de los activos de la información.
+          </p>
+
           {/* Grid de Pilares de Seguridad */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10 border-t border-white/10 pt-16">
             {pilares.map((pilar, i) => (

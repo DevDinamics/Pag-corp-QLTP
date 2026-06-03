@@ -1,8 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+// 1. Importamos useNavigate para poder cambiar de página
+import { useNavigate } from 'react-router-dom'; 
 
 export default function NosotrosHero() {
+  // 2. Inicializamos el hook
+  const navigate = useNavigate(); 
+
   return (
     <section className="relative min-h-[90vh] flex flex-col justify-center pt-32 pb-20 px-6 max-w-7xl mx-auto overflow-hidden">
       
@@ -42,6 +47,8 @@ export default function NosotrosHero() {
         </motion.p>
 
         <motion.button 
+          // 3. Agregamos el evento onClick apuntando a la ruta de servicios
+          onClick={() => navigate('/productsSection')} 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="bg-qualtop-orange hover:bg-orange-600 text-white font-black py-5 px-12 rounded-lg transition-all duration-300 tracking-[0.2em] uppercase text-xs flex items-center gap-4 shadow-[0_15px_40px_rgba(255,77,0,0.3)]"

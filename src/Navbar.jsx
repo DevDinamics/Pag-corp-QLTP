@@ -103,7 +103,16 @@ export default function Navbar() {
       ] 
     },
     { title: 'Nosotros', href: '/nosotros', hasDropdown: false },
-    { title: 'Blog', href: '/blog', hasDropdown: false }
+    { title: 'Blog', href: '/blog', hasDropdown: false },
+    // NUEVO LINK: Qualtop Careers con Badge
+
+    
+    { 
+      title: 'Carreras', 
+      href: '/careers', 
+      hasDropdown: false, 
+      badge: 'HIRING' 
+    } 
   ];
 
   return (
@@ -143,10 +152,18 @@ export default function Navbar() {
                 <div key={index} className="relative h-full flex items-center" onMouseEnter={() => item.hasDropdown && setActiveDropdown(index)}>
                   <Link 
                     to={item.href} 
-                    className={`relative flex items-center gap-1 text-sm font-medium transition-all duration-300 tracking-wide px-2 py-2
+                    className={`relative flex items-center gap-1 text-sm font-medium transition-all duration-300 tracking-wide px-2 py-2 group
                     ${activeDropdown === index || isActive ? 'text-qualtop-orange' : 'text-gray-300 hover:text-white'}`}
                   >
                     {item.title}
+                    
+                    {/* Renderizado Condicional del Badge "HIRING" */}
+                    {item.badge && (
+                      <span className="ml-1 bg-qualtop-orange text-white text-[9px] font-bold px-1.5 py-0.5 rounded-sm tracking-wider uppercase opacity-90 group-hover:opacity-100 transition-opacity">
+                        {item.badge}
+                      </span>
+                    )}
+
                     {item.hasDropdown && (
                       <ChevronDown 
                         size={14} 

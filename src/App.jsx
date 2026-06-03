@@ -29,6 +29,7 @@ import AvisoPrivacidad from './AvisoPrivacidad';
 import PoliticaCalidad from './PoliticaCalidad';
 import FAQSection from './assets/pages/FAQSection';
 import ValuesFlower from './Nosotros/ValuesFlower';
+import CareersHome from './Careers/CareersHome';
 
 // --- UTILIDADES DE SCROLL ---
 const ScrollToTop = () => {
@@ -206,7 +207,10 @@ export default function App() {
             <Route path="/politica-calidad" element={<PoliticaCalidad />} />
             <Route path="/faqs" element={<FAQSection />} />
             <Route path="/valores" element={<ValuesFlower />} />
+            <Route path="/servicios" element={<ServicesSection />} />
+            <Route path="/productsSection" element={<ProductsSection />} />
             <Route path="*" element={<Home />} />
+            <Route path="/careers" element={<CareersHome />} />
           </Routes>
           <CookieConsent />
           <ScrollToTopButton /> 

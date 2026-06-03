@@ -88,32 +88,53 @@ export default function ContactForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- FUNCIÓN CORREGIDA: AHORA SÍ CONECTA CON EL PHP ---
+  // --- FUNCIÓN ACTUALIZADA: RECAPTCHA V3 INTEGRADO ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormState('loading');
 
-    try {
-      const respuesta = await fetch('https://qualtop.com/enviar_proyecto.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (respuesta.ok) {
-        setFormState('success');
-        setFormData({ nombre: '', email: '', empresa: '', telefono: '', industria: '', servicio: '', mensaje: '' });
-        
-        setTimeout(() => setFormState('idle'), 3000);
-      } else {
-        setFormState('idle');
-        alert("Error al enviar el mensaje. Código: " + respuesta.status);
-      }
-    } catch (error) {
-      console.error("Error completo:", error);
+    // Validación de seguridad para asegurar que el script de reCAPTCHA esté cargado
+    if (!window.grecaptcha) {
+      console.error('El script de reCAPTCHA no se ha cargado.');
       setFormState('idle');
-      alert("Error de conexión con el servidor.");
+      alert('Error de seguridad. Por favor recarga la página e intenta de nuevo.');
+      return;
     }
+
+    // 1. Llamamos a Google para generar el Token
+    window.grecaptcha.ready(function() {
+      window.grecaptcha.execute('6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H', {action: 'submit'}).then(async function(token) {
+        
+        // 2. Preparamos los datos incluyendo el token
+        const dataToSend = {
+          ...formData,
+          recaptcha_token: token
+        };
+
+        // 3. Enviamos a PHP
+        try {
+          const respuesta = await fetch('https://qualtop.com/enviar_proyecto.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend)
+          });
+
+          if (respuesta.ok) {
+            setFormState('success');
+            setFormData({ nombre: '', email: '', empresa: '', telefono: '', industria: '', servicio: '', mensaje: '' });
+            setTimeout(() => setFormState('idle'), 3000);
+          } else {
+            setFormState('idle');
+            alert("Error al enviar el mensaje. Código: " + respuesta.status);
+          }
+        } catch (error) {
+          console.error("Error completo:", error);
+          setFormState('idle');
+          alert("Error de conexión con el servidor.");
+        }
+
+      });
+    });
   };
 
   return (
@@ -179,7 +200,9 @@ export default function ContactForm() {
                     <CheckCircle2 size={14} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 peer-checked:opacity-100 transition-opacity" />
                   </div>
                   <p className="text-xs text-gray-500 leading-relaxed">
-                    Al hacer click en enviar, apruebas a Qualtop el uso y distribución de tus datos personales. Para más información visita nuestra <a href="./aviso-privacidad" className="text-gray-400 hover:text-qualtop-orange underline decoration-1 underline-offset-2 transition-colors">Política de privacidad</a>.
+                    Al hacer click en enviar, apruebas a Qualtop el uso y distribución de tus datos personales. Para más información visita nuestro <a href="./aviso-privacidad" className="text-gray-400 hover:text-qualtop-orange underline decoration-1 underline-offset-2 transition-colors">Aviso de privacidad</a>.
+                    <br/>
+                    <span className="text-[10px] text-gray-600 mt-1 block">Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" className="underline" target="_blank" rel="noreferrer">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" className="underline" target="_blank" rel="noreferrer">Términos de Servicio</a> de Google.</span>
                   </p>
                 </div>
 

@@ -57,44 +57,61 @@ export default function ContactSection() {
   const form = useRef();
   const [formState, setFormState] = useState('idle');
 
-
+  // --- FUNCIÓN ACTUALIZADA CON RECAPTCHA V3 ---
   const sendEmail = async (e) => {
     e.preventDefault();
     setFormState('loading');
 
- 
+    // Extraemos los datos del formulario
     const formData = new FormData(form.current);
     const data = Object.fromEntries(formData.entries());
 
-    try {
-     
-      const response = await fetch('https://qualtop.com/enviar_correo.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-    
-      if (result.status === 'success') {
-        console.log('¡Email enviado con éxito por cPanel!');
-        setFormState('success');
-        e.target.reset();
-        setTimeout(() => setFormState('idle'), 5000);
-      } else {
-        console.error('Error del servidor:', result.message);
-        setFormState('error');
-        setTimeout(() => setFormState('idle'), 4000);
-      }
-
-    } catch (error) {
-      console.error('Error de red o conexión:', error);
+    // Validación de seguridad para el script de Google
+    if (!window.grecaptcha) {
+      console.error('El script de reCAPTCHA no se ha cargado.');
       setFormState('error');
-      setTimeout(() => setFormState('idle'), 4000);
+      alert('Error de seguridad. Por favor recarga la página e intenta de nuevo.');
+      return;
     }
+
+    // 1. Llamamos a Google para generar el Token
+    window.grecaptcha.ready(function() {
+      window.grecaptcha.execute('6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H', {action: 'submit'}).then(async function(token) {
+        
+        // 2. Le agregamos el token al objeto data
+        data.recaptcha_token = token;
+
+        // 3. Enviamos a tu backend PHP
+        try {
+          const response = await fetch('https://qualtop.com/enviar_correo.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+
+          if (result.status === 'success') {
+            console.log('¡Email enviado con éxito por cPanel!');
+            setFormState('success');
+            e.target.reset();
+            setTimeout(() => setFormState('idle'), 5000);
+          } else {
+            console.error('Error del servidor:', result.message);
+            setFormState('error');
+            setTimeout(() => setFormState('idle'), 4000);
+          }
+
+        } catch (error) {
+          console.error('Error de red o conexión:', error);
+          setFormState('error');
+          setTimeout(() => setFormState('idle'), 4000);
+        }
+
+      });
+    });
   };
 
   return (
@@ -174,14 +191,18 @@ export default function ContactSection() {
                 
                 <InputGroup name="message" label="¿Cómo podemos ayudarte?" isTextArea required />
 
-                <div className="flex items-start gap-3 mt-2">
-                  <div className="relative flex items-center mt-1">
-                    <input type="checkbox" required id="privacy" className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-white/20 bg-white/5 checked:border-qualtop-orange checked:bg-qualtop-orange transition-all" />
-                    <CheckCircle2 size={12} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                <div className="flex flex-col gap-1 mt-2">
+                  <div className="flex items-start gap-3">
+                    <div className="relative flex items-center mt-1">
+                      <input type="checkbox" required id="privacy" className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-white/20 bg-white/5 checked:border-qualtop-orange checked:bg-qualtop-orange transition-all" />
+                      <CheckCircle2 size={12} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                    </div>
+                    <label htmlFor="privacy" className="text-xs text-gray-500 leading-relaxed cursor-pointer select-none">
+                      He leído y acepto el <a href="./aviso-privacidad" className="text-gray-400 hover:text-qualtop-orange underline transition-colors">Aviso de Privacidad</a>.
+                    </label>
                   </div>
-                  <label htmlFor="privacy" className="text-xs text-gray-500 leading-relaxed cursor-pointer select-none">
-                    He leído y acepto la <a href="#" className="text-gray-400 hover:text-qualtop-orange underline transition-colors">Política de Privacidad</a>.
-                  </label>
+                  {/* Texto legal de reCAPTCHA obligatorio si ocultas el badge */}
+                  <span className="text-[10px] text-gray-600 pl-7">Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" className="underline hover:text-gray-400" target="_blank" rel="noreferrer">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" className="underline hover:text-gray-400" target="_blank" rel="noreferrer">Términos de Servicio</a> de Google.</span>
                 </div>
 
                 <button 

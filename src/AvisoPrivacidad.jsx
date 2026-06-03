@@ -146,7 +146,6 @@ export default function AvisoPrivacidad() {
 
           {/* --- BLOQUE DE CONSENTIMIENTO --- */}
           <div className="mt-16 pt-8 border-t border-white/10">
-            <h3 className="text-xl font-bold text-white mb-6">Confirmación de Consentimiento</h3>
             <div className="flex flex-col md:flex-row gap-4">
               <label className="flex-1 cursor-pointer group">
                 <input type="radio" name="consentimiento" className="peer sr-only" />
