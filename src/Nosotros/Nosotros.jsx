@@ -8,26 +8,17 @@ import WhatDrivesUs from './WhatDrivesUs';
 import TalentCulture from './TalentCulture';
 import CallToAction from './CallToAction';
 
-
-import { ArrowRight } from 'lucide-react';
-
-
-
 export default function Nosotros() {
   return (
-    <div className="bg-black text-white font-sans selection:bg-qualtop-orange">
+    <div className="bg-black text-white font-sans selection:bg-qualtop-orange overflow-x-clip">
       <NosotrosHero />
       <NosotrosTimeline />
       <ManifestoSection />
       <ValuesFlower />
-      <PurposeSection/>
+      <PurposeSection />
       <WhatDrivesUs />
       <TalentCulture />
       <CallToAction />
-      
-      
-
-
     </div>
   );
 }

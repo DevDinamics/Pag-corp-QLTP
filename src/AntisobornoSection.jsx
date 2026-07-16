@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Scale, FileText, Users, Globe, CheckCircle2, Plus, Minus } from 'lucide-react';
+import { ShieldCheck, Scale, FileText, Users, Globe, CheckCircle2, Plus, Minus, Clock } from 'lucide-react';
+
+
+const fadeIn = {
+  initial: { opacity: 0, y: 20 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.6 }
+};
 
 // --- COMPONENTE DEL ACORDEÓN ---
 const AccordionItem = ({ title, content }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  
 
   return (
     <div className="border-b border-qualtop-orange/30">
@@ -63,7 +73,7 @@ export default function AntisobornoSection() {
       content: (
         <>
           <p>
-            En nuestra organización entendemos como Soborno a la oferta, promesa, entrega, aceptación o solicitud de una ventaja indebida de cualquier valor (que pueda ser de naturaleza financiera o no financiera), directamente ó indirectamente e independiente de su ubicación en violación de la ley aplicable, como incentivo o recompensa para que una persona actúe o deje de actuar en relación con el desempeño de las obligaciones de esa persona.
+            En nuestra organización entendemos como Soborno a la oferta, promesa, entrega, aceptación o solicitud de una ventaja indebida de cualquier valor <strong>(que pueda ser de naturaleza financiera o no financiera)</strong>, directamente o indirectamente e independiente de su ubicación en violación de la ley aplicable, como incentivo o recompensa para que una persona actúe o deje de actuar en relación con el desempeño de las obligaciones de esa persona.
           </p>
           <p>
             Los Sobornos pueden tener la forma de obsequios, prestamos, valores, pago de entretenimiento, viajes, vacaciones, pagos de comisiones o recompensas en efectivo o en especie, ofertas de trabajo, servicios personales especiales o cualquier otra cosa de valor, que se proporcione con el ánimo de obtener una ventaja o influenciar una decisión. Los actos de corrupción para efectos de la política antisoborno de la organización incluyen conductas no éticas tales como soborno, fraude, extorsión o la utilización de información falsa o privilegiada en perjuicio de la empresa.
@@ -75,8 +85,7 @@ export default function AntisobornoSection() {
             Asimismo, se entiende como un acto de corrupción y faltas de ética, el “fraude ocupacional” entendiendo a este como el uso intencional del puesto de trabajo para el enriquecimiento personal, de un socio de negocio u otra entidad a través del uso indebido de los recursos o activos de la empresa.
           </p>
           <p>
-            Si identifican alguna alerta, se deberá contactar al Oficial de Cumplimiento Antisoborno para orientación y generar el registro en{' '}
-            {' '}
+            Si identifican alguna alerta, se deberá contactar al Oficial de Cumplimiento Antisoborno para orientación y generar el registro en la{' '}
             <a href="https://www.qualtop.com/linea-de-denuncia/" target="_blank" rel="noreferrer" className={linkClass}>
               Línea de Denuncia - Qualtop
             </a>.
@@ -97,7 +106,7 @@ export default function AntisobornoSection() {
             <li>Realizar pagos a causas o partidos políticos con recursos de la empresa o a nombre de la organización. Se pueden realizar donativos bajo los lineamientos previamente establecidos de la organización.</li>
           </ul>
           <p>
-            Los colaboradores, directivos y socios de negocio dentro del alcance del Sistema de Gestión Antisoborno deberán a apegarse a nuestra política antisoborno, procesos aplicables y ayudar en el logro de nuestros objetivos antisoborno.
+            Los colaboradores, directivos y socios de negocio dentro del alcance del Sistema de Gestión Antisoborno deberán apegarse a nuestra política antisoborno, procesos aplicables y ayudar en el logro de nuestros objetivos antisoborno.
           </p>
           <p>
             El personal designado como Oficial de Cumplimiento Antisoborno tiene la autoridad e independencia para supervisar el sistema de gestión, y proporcionar orientación al personal sobre cualquier inquietud, o sospecha de soborno.
@@ -115,7 +124,7 @@ export default function AntisobornoSection() {
           <p>Es responsabilidad del personal y socios de negocio cumplir los requisitos del Sistema de Gestión Antisoborno.</p>
           <ul className="list-disc pl-5 space-y-2 marker:text-qualtop-orange">
             <li>Apegarnos a las leyes aplicables a nuestra organización identificadas en la Tabla de Requisitos Legales.</li>
-            <li>Realizar todas las negociaciones compras y transacciones financieras con apego a nuestros procesos internos y conservando todos los registros de las mismas para ser revisados en caso de auditoria.</li>
+            <li>Realizar todas las negociaciones, compras y transacciones financieras con apego a nuestros procesos internos y conservando todos los registros de las mismas para ser revisados en caso de auditoria.</li>
             <li>Asegurarnos de que los pagos que realicemos o que se realicen por nuestra cuenta sean exclusivamente una remuneración por servicios efectivamente prestados a nuestra compañía o en nombre de ella.</li>
             <li>Adoptar los controles internos y denunciar, si es necesario ante las autoridades correspondientes aquellos casos en los que algún empleado, o socio de negocio incurra en un acto de corrupción.</li>
             <li>Promover las mejores prácticas para prevenir y luchar contra el soborno y la corrupción a lo largo de nuestra cadena de valor, capacitar al personal sobre las medidas preventivas y realizar campañas de difusión.</li>
@@ -129,15 +138,15 @@ export default function AntisobornoSection() {
       content: (
         <>
           <p>
-            Está prohibido dar o recibir regalos, comidas, entretenimiento, hospitalidad o cortesías (en adelante regalos), sin embargo, puede ser aceptable mientras no haya expectativa de que la persona que recibió el beneficio vaya a corresponder con algo a cambio de esa atención. Así mismo, los regalos deben ser razonables según las circunstancias, no excesivos e infrecuentes y deben cumplir la siguiente serie de requisitos que los regulan:
+            Está prohibido dar o recibir regalos, comidas, entretenimiento, hospitalidad o cortesías <strong>(en adelante regalos)</strong>, sin embargo, puede ser aceptable mientras no haya expectativa de que la persona que recibió el beneficio vaya a corresponder con algo a cambio de esa atención. Así mismo, los regalos deben ser razonables según las circunstancias, no excesivos e infrecuentes y deben cumplir la siguiente serie de requisitos que los regulan:
           </p>
           <ul className="list-disc pl-5 space-y-2 marker:text-qualtop-orange">
             <li>Se podrá realizar o recibir regalos de valor modesto, como tazas, lapiceros o camisetas, o con valor simbólico, como trofeos o placas en reconocimiento.</li>
-            <li>En ningún caso se podrá ofrecer o aceptar dinero en efectivo o equivalente (vales o tarjetas de regalo).</li>
+            <li>En ningún caso se podrá ofrecer o aceptar dinero en efectivo o equivalente <strong>(vales o tarjetas de regalo)</strong>.</li>
             <li>Únicamente se podrá ofrecer o aceptar regalos u otro tipo de atenciones que no vulneren la legalidad vigente ni estén prohibidos en el marco de un contrato vigente; teniendo en cuenta que el valor no supere el importe de $4,500.00 pesos mexicanos anuales por persona y que no supere anualmente 30,000 pesos mexicanos por cliente, proveedor, partner, socio o aliado.</li>
             <li>No se podrá aceptar o realizar regalos o invitaciones de/a una misma persona más de 3 veces al año.</li>
             <li>Se habrá de respetar en todo momento la Política de Regalos de las Organizaciones con las que tenemos relaciones de negocio.</li>
-            <li>No se aceptarán u ofrecerán regalos hechos en forma de servicios o beneficios (por ejemplo, promesas de empleo).</li>
+            <li>No se aceptarán u ofrecerán regalos hechos en forma de servicios o beneficios <strong>(por ejemplo, promesas de empleo)</strong>.</li>
             <li>No se debe realizar o aceptar regalos durante o inmediatamente después de la negociación de un contrato.</li>
             <li>No se debe aceptar u ofrecer regalos a aquellas personas que participen directamente en la adjudicación de contratos, aprobación de certificados, u otros.</li>
             <li>No deben resultar en un problema si se hace público este regalo.</li>
@@ -158,7 +167,7 @@ export default function AntisobornoSection() {
             <li>Ser responsable de llevar un registro de todos los regalos solicitados y recibidos por cada año calendario.</li>
           </ul>
           <p>
-            Si tenemos una duda sobre dar o aceptar una comida o regalo debemos preguntar a nuestro jefe directo, consultarlo con algún integrante del comité de ética o hacerlo mediante la línea de denuncia mediante Qualtop: <a href="https://www.qualtop.com/linea-de-denuncia/" target="_blank" rel="noreferrer" className={linkClass}>https://www.qualtop.com/linea-de-denuncia/</a> .
+            Si tenemos una duda sobre dar o aceptar una comida o regalo debemos preguntar a nuestro jefe directo, consultarlo con algún integrante del comité de ética o hacerlo mediante la línea de denuncia de Qualtop: <a href="https://www.qualtop.com/linea-de-denuncia/" target="_blank" rel="noreferrer" className={linkClass}>https://www.qualtop.com/linea-de-denuncia/</a>.
           </p>
         </>
       )
@@ -173,7 +182,7 @@ export default function AntisobornoSection() {
             <li><strong>Promoción del bienestar:</strong> Proyectos que promuevan hábitos saludables y una mejor calidad de vida, como el deporte o alimentación balanceada.</li>
             <li><strong>Voluntariado:</strong> Programas que busquen el involucramiento de la comunidad para el apoyo de personas en situación vulnerable.</li>
             <li><strong>Auxilio en Desastres Naturales:</strong> Asistencia a personas afectadas por contingencias provocadas por temblores, huracanes, entre otros.</li>
-            <li><strong>Educación:</strong> Formación de niños y jóvenes de escasos recursos a través de institutions con programas educativos.</li>
+            <li><strong>Educación:</strong> Formación de niños y jóvenes de escasos recursos a través de instituciones con programas educativos.</li>
             <li><strong>Medio Ambiente:</strong> Impulsar programas para el cuidado y conservación de los recursos.</li>
           </ul>
           <p>Para otorgar un Donativo o contribución a un organismo o institución sin fines de lucro se debe cumplir con los siguientes lineamientos:</p>
@@ -212,7 +221,7 @@ export default function AntisobornoSection() {
           <ul className="list-disc pl-5 space-y-2 marker:text-qualtop-orange">
             <li>El costo de los vuelos, transporte, alimentos y hospedaje se autorizarán y reembolsarán conforme a los lineamientos establecidos en la Política de Viajes y/u Hospedajes.</li>
             <li>Cualquier gasto que no esté relacionado con un asunto de negocios de la organización o trabajo no será autorizado ni reembolsado.</li>
-            <li>Los reembolsos a Terceros sólo aplicarán cuando exista un contrato (o en su defecto, una propuesta de servicios aceptada) que lo estipule.</li>
+            <li>Los reembolsos a Terceros sólo aplicarán cuando exista un contrato <strong>(o en su defecto, una propuesta de servicios aceptada)</strong> que lo estipule.</li>
           </ul>
           <p>El oficial de cumplimiento antisoborno deberá:</p>
           <ul className="list-disc pl-5 space-y-2 marker:text-qualtop-orange">
@@ -242,7 +251,7 @@ export default function AntisobornoSection() {
       )
     },
     {
-      title: "Puestos clave",
+      title: "Puestos Clave",
       content: (
         <>
           <p>Los puestos identificados como clave que se listan a continuación deberán presentar una declaración de cumplimiento antisoborno por lo menos una vez al año o al cambiar de puesto:</p>
@@ -273,7 +282,8 @@ export default function AntisobornoSection() {
                 <li>Account Manager</li>
                 <li>Sales & Business Development Director</li>
                 <li>Business Success Director</li>
-                <li>Customer Success Leader Jr / Sr</li>
+                <li>Customer Success Leader Jr</li>
+                <li>Customer Success Leader Sr</li>
                 <li>Project Success Leader</li>
                 <li>Business transformation Director</li>
                 <li>Especialista de Proyectos de Gobierno Sr.</li>
@@ -317,7 +327,7 @@ export default function AntisobornoSection() {
       )
     },
     {
-      title: "Delegación de la toma de decisiones antisoborno",
+      title: "Delegación de la Toma de Decisiones Antisoborno",
       content: (
         <>
           <p>El Oficial de Cumplimiento Antisoborno será el responsable de gestionar las tomas de decisiones formales que se presenten y de asegurar la implementación de la mejor solución conforme al instructivo Toma de decisiones organizacionales.</p>
@@ -352,7 +362,7 @@ export default function AntisobornoSection() {
           <p>Cuando un colaborador o socio de negocio requiera obtener información, asesoría, exponer sus preocupaciones, solicitar apoyo o plantear dudas sobre temas relacionados con riesgos o posibles actos de soborno podrán acercarse al Oficial de Cumplimiento Antisoborno o al Comité de Ética para obtener asesoría, o bien, podrán hacer uso de la <a href="https://www.qualtop.com/linea-de-denuncia/" target="_blank" rel="noreferrer" className={linkClass}>Línea de Denuncia</a>.</p>
           <p>Cualquier reporte de soborno o actividad sospechosa será tratado como confidencial. Ninguna persona que realice un reporte de soborno o de actividad sospechosa de buena fe sufrirá sanción o perjuicio por esta actividad.</p>
           <p>Se ha establecido el canal <a href="https://www.qualtop.com/linea-de-denuncia/" target="_blank" rel="noreferrer" className={linkClass}>Línea de Denuncia</a> supervisado por el Oficial de Cumplimiento Antisoborno y Comité de Ética, el cual es un canal de acceso público de denuncia, para que todos los interesados puedan realizar, de buena fe y sin temor a represalias, consultas o comunicaciones de incumplimientos de lo establecido en esta Política.</p>
-          <p>Si se tiene conocimiento de alguna conducta (activa o pasiva) contraria al contenido de la presente Política, se debe seguir el <a href="https://www.qualtop.com/linea-de-denuncia/" className={linkClass}>Proceso de Atención a la Línea de Denuncia</a> para el planteamiento de inquietudes o denuncias y comunicarlo a través de la Línea de Denuncia, al que se podrá acceder a través de las páginas web de la organización:</p>
+          <p>Si se tiene conocimiento de alguna conducta <strong>(activa o pasiva)</strong> contraria al contenido de la presente Política, se debe seguir el Proceso de Atención a la Línea de Denuncia para el planteamiento de inquietudes o denuncias y comunicarlo a través de la Línea de Denuncia, al que se podrá acceder a través de las páginas web de la organización:</p>
           <ul className="list-disc pl-5 space-y-2 marker:text-qualtop-orange">
             <li><a href="https://www.qualtop.com/linea-de-denuncia/" target="_blank" rel="noreferrer" className={linkClass}>https://www.qualtop.com/linea-de-denuncia/</a></li>
           </ul>
@@ -368,10 +378,7 @@ export default function AntisobornoSection() {
   return (
     <section className="relative py-32 bg-[#050505] overflow-hidden font-sans text-white">
       
-      {/* Fondo Decorativo Sutil */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#FF4D00,transparent_50%)] blur-[120px]" />
-      </div>
+     
 
       <div className="max-w-4xl mx-auto px-6 relative z-10">
         
@@ -394,7 +401,7 @@ export default function AntisobornoSection() {
             className="text-4xl md:text-6xl font-bold leading-tight mb-12 tracking-tight"
           >
             Política <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-600">Antisoborno.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-600">Antisoborno</span>
           </motion.h2>
 
           <motion.div 
@@ -404,7 +411,7 @@ export default function AntisobornoSection() {
             className="space-y-6 text-lg text-gray-400 leading-relaxed"
           >
             <p>
-              El objetivo de este documento es establecer las políticas Antisoborno, asegurando y promoviendo que cualquier actividad que se desempeñe dentro de la organización <strong className="text-white">Qualtop, S.A. de C.V.</strong>, o a nombre de la(s) misma(s), esté fundamentada en la ética y valores que nos caracterizan, condenando la corrupción, soborno, fraude o cualquier otro acto ilegal que se pudiera presentar a lo largo de nuestra cadena productiva.
+              El objetivo de este documento es establecer las políticas Antisoborno, asegurando y promoviendo que cualquier actividad que se desempeñe dentro de la organización <strong>(Qualtop, S.A. de C.V.)</strong>, o a nombre de la misma, esté fundamentada en la ética y valores que nos caracterizan, condenando la corrupción, soborno, fraude o cualquier otro acto ilegal que se pudiera presentar a lo largo de nuestra cadena productiva.
             </p>
             <p>
               Dentro de nuestra organización buscamos promover siempre los valores y aptitudes que nos representan tales como la honestidad y la ética, permitiendo así que nuestro desempeño sea reconocido no solo por nuestros resultados sino también por nuestra <span className="text-qualtop-orange italic">calidad humana</span>.
@@ -433,7 +440,7 @@ export default function AntisobornoSection() {
           </h3>
           
           <p className="text-gray-300 leading-relaxed mb-8 relative z-10 text-lg">
-            Esta política es aplicable a los colaboradores, socios, proveedores, aliados, partners y clientes. A fin de coadyuvar y promover el cumplimiento de esta política, se ha establecido un <strong className="text-white">Sistema de Gestión Antisoborno (SGAS)</strong> bajo la Norma ISO 37001:2016, el cual contiene medidas diseñadas para:
+            Esta política es aplicable a los colaboradores, socios, proveedores, aliados, partners y clientes. A fin de coadyuvar y promover el cumplimiento de esta política, se ha establecido un Sistema de Gestión Antisoborno <strong>(SGAS)</strong> bajo la Norma ISO 37001:2016, el cual contiene medidas diseñadas para:
           </p>
           
           <ul className="space-y-4 relative z-10">
@@ -463,6 +470,15 @@ export default function AntisobornoSection() {
             ))}
           </div>
         </div>
+
+        {/* FECHA DE ACTUALIZACIÓN */}
+        <motion.div 
+          {...fadeIn}
+          className="flex items-center justify-center gap-2 text-gray-500 text-sm mt-16"
+        >
+          <Clock size={16} />
+          <span>Última actualización: 09/06/2026</span>
+        </motion.div>
 
       </div>
     </section>

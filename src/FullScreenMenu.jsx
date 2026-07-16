@@ -29,11 +29,12 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
       ]
     }, 
     { title: "Blog", href: "/blog" },
+    { title: "Carreras", href: "/careers", badge: "HIRING" },
     { title: "Contacto", href: "/contact-home" }
   ];
 
   const legalLinks = [
-    { title: "Política de Seguridad de la información", href: "/politica-seguridad" }, 
+    { title: "Política Organizacional de Seguridad de la información", href: "/politica-seguridad" }, 
     { title: "Política Antisoborno", href: "/politicas-antisoborno" }, 
     { title: "Política de Calidad", href: "/politica-calidad" },
     { title: "Línea de denuncia", href: "/linea-de-denuncia" }
@@ -171,57 +172,63 @@ export default function FullScreenMenu({ isOpen, onClose, isScrolled }) {
               className="flex flex-col gap-6 mb-12"
             >
               {mainLinks.map((link, index) => (
-                <motion.div key={index} variants={linkVars} className="border-b border-white/5 pb-4">
-                  {/* SI TIENE SUBITEMS (SERVICIOS) */}
-                  {link.subItems ? (
-                    <div>
-                      <button 
-                        onClick={() => toggleExpand(index)}
-                        aria-expanded={expandedItem === index}
-                        className="w-full flex items-center justify-between text-3xl font-bold text-white"
-                      >
-                        {link.title}
-                        <ChevronDown 
-                          className={`text-qualtop-orange transition-transform duration-300 ${expandedItem === index ? 'rotate-180' : ''}`} 
-                        />
-                      </button>
-                      
-                      <AnimatePresence>
-                        {expandedItem === index && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="flex flex-col gap-3 mt-4 pl-4 border-l-2 border-white/10">
-                              {link.subItems.map((sub, i) => (
-                                <Link 
-                                  key={i} 
-                                  to={sub.href} 
-                                  onClick={onClose}
-                                  className="flex items-center gap-3 text-gray-400 hover:text-white py-2"
-                                >
-                                  <span className="text-qualtop-orange">{sub.icon}</span>
-                                  <span className="text-sm font-medium">{sub.label}</span>
-                                </Link>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ) : (
-                    <Link 
-                      to={link.href} 
-                      onClick={onClose}
-                      className="block text-3xl font-bold text-gray-300 hover:text-white"
-                    >
-                      {link.title}
-                    </Link>
-                  )}
-                </motion.div>
-              ))}
+  <motion.div key={index} variants={linkVars} className="border-b border-white/5 pb-4">
+    {/* SI TIENE SUBITEMS (SERVICIOS) */}
+    {link.subItems ? (
+      <div>
+        <button 
+          onClick={() => toggleExpand(index)}
+          aria-expanded={expandedItem === index}
+          className="w-full flex items-center justify-between text-3xl font-bold text-white"
+        >
+          {link.title}
+          <ChevronDown 
+            className={`text-qualtop-orange transition-transform duration-300 ${expandedItem === index ? 'rotate-180' : ''}`} 
+          />
+        </button>
+        
+        <AnimatePresence>
+          {expandedItem === index && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-col gap-3 mt-4 pl-4 border-l-2 border-white/10">
+                {link.subItems.map((sub, i) => (
+                  <Link 
+                    key={i} 
+                    to={sub.href} 
+                    onClick={onClose}
+                    className="flex items-center gap-3 text-gray-400 hover:text-white py-2"
+                  >
+                    <span className="text-qualtop-orange">{sub.icon}</span>
+                    <span className="text-sm font-medium">{sub.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    ) : (
+      // --- SECCIÓN CORREGIDA ---
+      <Link 
+        to={link.href} 
+        onClick={onClose}
+        className="flex items-center gap-3 text-3xl font-bold text-gray-300 hover:text-white"
+      >
+        {link.title}
+        {link.badge && (
+          <span className="bg-qualtop-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+            {link.badge}
+          </span>
+        )}
+      </Link>
+    )}
+  </motion.div>
+))}
             </motion.nav>
 
             {/* 2. CONTACTO MÓVIL */}

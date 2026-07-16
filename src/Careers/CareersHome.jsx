@@ -32,7 +32,7 @@ export default function CareersHome() {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const bgY     = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
   const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "6%"]); 
   const contentOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   const scrollToVacantes = (e) => {
@@ -48,7 +48,8 @@ export default function CareersHome() {
       ═══════════════════════════════════════ */}
       <section
         ref={heroRef}
-        className="relative w-screen left-1/2 -translate-x-1/2 h-screen min-h-[600px] flex flex-col justify-center px-5 sm:px-10 md:px-16 lg:px-24 overflow-hidden"
+        // 👇 AQUÍ AGREGAMOS pt-32 md:pt-40 👇
+        className="relative w-screen left-1/2 -translate-x-1/2 h-[100dvh] min-h-[600px] flex flex-col justify-center px-5 sm:px-10 md:px-16 lg:px-24 overflow-hidden pt-32 md:pt-40" 
       >
 
         {/* Fondo parallax */}
@@ -63,8 +64,6 @@ export default function CareersHome() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/80 to-[#050505]/20 md:via-[#050505]/65 md:to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40" />
         </div>
-
-        {/* Glow naranja ambiente */}
 
         {/* ── CONTENIDO ── */}
         <motion.div
@@ -90,7 +89,7 @@ export default function CareersHome() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.85, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             className="font-bold leading-[1.05] tracking-tight mb-5 md:mb-7"
-            style={{ fontSize: "clamp(2.6rem, 8vw, 7rem)" }}
+            style={{ fontSize: "clamp(2rem, 5.5vw, 5.5rem)" }}
           >
             El lugar para <br />
             <span
@@ -161,7 +160,7 @@ export default function CareersHome() {
       <div id="vacantes" className="py-16 sm:py-20 md:py-28 px-4 sm:px-6 md:px-10 xl:px-16 bg-[#050505]">
         <VacantesSection />
       </div>
-
+        
       <RecruitmentJourney />
 
       <FAQSection />

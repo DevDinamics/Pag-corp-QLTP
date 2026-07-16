@@ -1,4 +1,4 @@
-import { Briefcase } from 'lucide-react'; // Puedes usar el icono que prefieras
+import { Briefcase } from 'lucide-react';
 
 export default {
   name: 'vacante',
@@ -27,19 +27,13 @@ export default {
       validation: (Rule) => Rule.required().min(5).max(80),
     },
     {
+      // 👇 AQUÍ ESTÁ EL CAMBIO PRINCIPAL 👇
       name: 'area',
-      title: 'Área / Categoría',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Engineering', value: 'Engineering' },
-          { title: 'Innovation', value: 'Innovation' },
-          { title: 'Quality Assurance', value: 'Quality Assurance' },
-          { title: 'Data', value: 'Data' },
-          { title: 'Design', value: 'Design' },
-        ],
-      },
-      validation: (Rule) => Rule.required(),
+      title: 'Áreas / Categorías',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'Añade una o más áreas (ej. Cloud, Data, Ciberseguridad). Pulsa "+ Add item" por cada una.',
+      validation: (Rule) => Rule.required().min(1).error('Debes agregar al menos un área.'),
     },
     {
       name: 'ubicacion',
@@ -52,9 +46,7 @@ export default {
       name: 'tipo',
       title: 'Tipo de Contrato',
       type: 'string',
-      options: {
-        list: ['Full-time', 'Part-time', 'Freelance', 'Internship'],
-      },
+      description: 'Ej. Full-time, Freelance, Por Proyecto, etc.',
       initialValue: 'Full-time',
     },
     {
@@ -86,9 +78,12 @@ export default {
     },
     prepare(selection) {
       const { title, subtitle, isActive } = selection;
+      // Como ahora 'area' es un arreglo, lo unimos con comas para la vista previa
+      const areasText = subtitle && subtitle.length > 0 ? subtitle.join(', ') : 'Sin área';
+      
       return {
         title: title,
-        subtitle: `${isActive ? '🟢 ACTIVA' : '🔴 INACTIVA'} | ${subtitle}`,
+        subtitle: `${isActive ? '🟢 ACTIVA' : '🔴 INACTIVA'} | ${areasText}`,
       };
     },
   },

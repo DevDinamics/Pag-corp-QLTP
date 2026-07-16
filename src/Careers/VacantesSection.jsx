@@ -1,488 +1,1395 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Briefcase, ChevronRight, Send, Search, Sparkles, X, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'; // animate: snap-back del drawer
+import {
+  MapPin, Briefcase, ChevronRight, Send, Search, Sparkles,
+  X, Upload, User, Mail, MessageCircle, Smartphone,
+  DollarSign, CheckCircle2, ChevronDown, Loader2
+} from 'lucide-react';
+import { client } from '../client';
+import CandidaturaEspontanea from './CandidaturaEspontanea';
+import ReCAPTCHA from "react-google-recaptcha";
 
-// IMPORTA TU CLIENTE DE SANITY AQUÍ (Ajusta la ruta si es necesario)
-import { client } from '../client'; 
+const BRAND = {
+  accent: '#E8500A',
+  accentMid: '#F4651F',
+  accentSoft: 'rgba(232,80,10,0.10)',
+  accentBorder: 'rgba(232,80,10,0.25)',
+};
 
-const areas = ["Todas", "Engineering", "Innovation", "Data", "Quality Assurance", "Design"];
+const OPCIONES_AREA = [
+  "Inteligencia Artificial y Machine Learning",
+  "Ciencia y Analítica de Datos (Data Science / Analytics)",
+  "Gestión de Producto (Product Management)",
+  "Metodologías Ágiles (Agile Coach / Scrum Master)",
+  "Análisis de Negocio (Business Analyst)",
+  "Diseño UX/UI (User Experience / User Interface)",
+  "Cloud Computing (Arquitectos / Ingenieros de Nube)",
+  "DevOps / SRE (Site Reliability Engineering)",
+  "Ciberseguridad",
+  "Blockchain",
+  "SAP",
+  "IoT",
+  "Otro"
+];
 
-// ── MODAL DE POSTULACIÓN ──
-const ApplyModal = ({ job, onClose }) => {
-  const [step, setStep] = useState(1); // 1: confirm, 2: success
-  if (!job) return null;
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylVS2tFPgwRFDrb-FpVC5HV7ZZMewKqrgu4R7CrsT-DXHzfoDuQSLwzOigAZeFgF4CIg/exec";
 
-  return (
-    <AnimatePresence>
+// ── PROGRESS DOTS ────────────────────────────────────────────────────────────
+const ProgressDots = ({ total, current }) => (
+  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+    {Array.from({ length: total }).map((_, i) => (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-4 sm:p-6"
-        onClick={onClose}
-      >
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        key={i}
+        animate={{
+          width: i + 1 === current ? 20 : 6,
+          backgroundColor: i + 1 <= current ? BRAND.accent : 'rgba(255,255,255,0.15)',
+        }}
+        transition={{ duration: 0.3 }}
+        style={{ height: 6, borderRadius: 99 }}
+      />
+    ))}
+  </div>
+);
 
-        <motion.div
-          initial={{ opacity: 0, y: 60, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 40, scale: 0.97 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          onClick={e => e.stopPropagation()}
-          className="relative w-full max-w-lg bg-[#0f0f0f] border border-white/10 rounded-3xl overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.8)]"
-        >
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-qualtop-orange to-transparent" />
-          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-qualtop-orange/10 blur-[80px] rounded-full pointer-events-none" />
+// ── FIELD ────────────────────────────────────────────────────────────────────
+const Field = ({ icon: Icon, ...rest }) => (
+  <div style={{ position: 'relative' }}>
+    {Icon && (
+      <Icon size={15} style={{
+        position: 'absolute', left: 14, top: '50%',
+        transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none',
+      }} />
+    )}
+    <input
+      {...rest}
+      style={{
+        width: '100%', boxSizing: 'border-box',
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.09)',
+        borderRadius: 12, padding: '12px 14px',
+        paddingLeft: Icon ? 40 : 14,
+        color: '#fff', fontSize: 'max(16px, 14px)', outline: 'none',
+        transition: 'border-color .2s, background .2s',
+      }}
+      onFocus={e => { e.target.style.borderColor = BRAND.accent; e.target.style.background = 'rgba(255,255,255,0.07)'; }}
+      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.09)'; e.target.style.background = 'rgba(255,255,255,0.04)'; }}
+    />
+  </div>
+);
 
-          <div className="relative p-7 sm:p-9">
-            <button
-              onClick={onClose}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-            >
-              <X size={16} className="text-gray-400" />
-            </button>
-
-            {step === 1 && (
-              <>
-                <div className="mb-7">
-                  <span className="text-[10px] text-qualtop-orange font-bold tracking-[0.3em] uppercase block mb-3">
-                    Postulación
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight pr-8">
-                    {job.puesto}
-                  </h3>
-                  <p className="text-gray-500 text-sm mt-2 flex items-center gap-2">
-                    <MapPin size={13} /> {job.ubicacion}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 mb-7">
-                  {job.requisitos && job.requisitos.map((req, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-white/[0.04] border border-white/5 rounded-xl p-3 text-xs text-gray-400">
-                      <div className="w-1.5 h-1.5 rounded-full bg-qualtop-orange shrink-0" />
-                      {req}
-                    </div>
-                  ))}
-                </div>
-
-                <p className="text-gray-400 text-sm mb-7 leading-relaxed">
-                  Al continuar serás redirigido para enviarnos tu información. Nuestro equipo de Reclutamiento se pondrá en contacto contigo a la brevedad.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={onClose}
-                    className="flex-1 py-3.5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 text-sm font-medium transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  {/* Cuando tengamos el formulario de PHP listo, aquí cambiaremos la acción */}
-                  <button
-                    onClick={() => setStep(2)}
-                    className="flex-1 py-3.5 rounded-2xl bg-qualtop-orange hover:bg-orange-600 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(255,77,0,0.35)] active:scale-95 group"
-                  >
-                    Continuar
-                    <ExternalLink size={15} className="group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="py-6 text-center"
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-                  className="w-20 h-20 rounded-full bg-qualtop-orange/10 border border-qualtop-orange/30 flex items-center justify-center mx-auto mb-6"
+// ── CONTACT PICKER ───────────────────────────────────────────────────────────
+const ContactPicker = ({ value, onChange, telefono, onTelChange, codigoPais, onCodigoChange }) => {
+  const methods = [
+    { id: 'whatsapp', label: 'WhatsApp', Icon: MessageCircle },
+    { id: 'email', label: 'Email', Icon: Mail },
+    { id: 'llamada', label: 'Llamada', Icon: Smartphone },
+  ];
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 14, padding: '14px 14px 12px',
+    }}>
+      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 10 }}>
+        ¿Por dónde prefieres que te contactemos?
+      </p>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 6, background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: 5,
+      }}>
+        {methods.map(({ id, label, Icon }) => (
+          <button key={id} type="button" onClick={() => onChange(id)} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            padding: '9px 6px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            fontSize: 12, fontWeight: 600,
+            background: value === id ? BRAND.accent : 'transparent',
+            color: value === id ? '#fff' : 'rgba(255,255,255,0.4)',
+            transition: 'all .2s', WebkitTapHighlightColor: 'transparent',
+          }}>
+            <Icon size={13} />{label}
+          </button>
+        ))}
+      </div>
+      <AnimatePresence>
+        {value !== 'email' && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginTop: 10 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <div style={{
+                position: 'absolute', left: 2, top: '50%',
+                transform: 'translateY(-50%)', display: 'flex', alignItems: 'center',
+              }}>
+                <select
+                  name="codigoPais" value={codigoPais} onChange={onCodigoChange}
+                  style={{
+                    background: 'transparent', color: 'rgba(255,255,255,0.7)',
+                    border: 'none', fontSize: 13, outline: 'none',
+                    appearance: 'none', cursor: 'pointer', padding: '8px 4px 8px 12px', zIndex: 2,
+                  }}
                 >
-                  <motion.svg
-                    width="36" height="36" viewBox="0 0 36 36"
-                    initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                  >
-                    <motion.path
-                      d="M8 18 L15 25 L28 11"
-                      fill="none" stroke="#ff4d00" strokeWidth="2.5"
-                      strokeLinecap="round" strokeLinejoin="round"
-                    />
-                  </motion.svg>
-                </motion.div>
-                <h3 className="text-xl font-bold text-white mb-3">¡Gracias por tu interés!</h3>
-                <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto mb-8">
-                  Tu solicitud para <span className="text-white font-medium">{job.puesto}</span> fue enviada. Nuestro equipo te contactará pronto.
-                </p>
-                <button
-                  onClick={onClose}
-                  className="px-8 py-3 rounded-2xl bg-white/8 hover:bg-white/12 border border-white/10 text-white text-sm font-medium transition-all"
-                >
-                  Cerrar
-                </button>
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+                  <option value="+52" style={{ color: '#000' }}>+52 🇲🇽</option>
+                  <option value="+1" style={{ color: '#000' }}>+1 🇺🇸</option>
+                  <option value="+57" style={{ color: '#000' }}>+57 🇨🇴</option>
+                  <option value="+54" style={{ color: '#000' }}>+54 🇦🇷</option>
+                  <option value="+51" style={{ color: '#000' }}>+51 🇵🇪</option>
+                  <option value="+56" style={{ color: '#000' }}>+56 🇨🇱</option>
+                  <option value="+55" style={{ color: '#000' }}>+55 🇧🇷</option>
+                  <option value="+593" style={{ color: '#000' }}>+593 🇪🇨</option>
+                  <option value="+58" style={{ color: '#000' }}>+58 🇻🇪</option>
+                  <option value="+34" style={{ color: '#000' }}>+34 🇪🇸</option>
+                  <option value="+44" style={{ color: '#000' }}>+44 🇬🇧</option>
+                </select>
+                <ChevronDown size={11} style={{ color: 'rgba(255,255,255,0.3)', marginLeft: -2, marginRight: 8, pointerEvents: 'none' }} />
+                <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />
+              </div>
+              <input
+                type="tel" name="telefono" value={telefono} onChange={onTelChange}
+                placeholder="Número a 10 dígitos"
+                required={value !== 'email'}
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 10, padding: '10px 14px 10px 88px',
+                  color: '#fff', fontSize: 'max(16px, 13px)', outline: 'none',
+                  transition: 'border-color .2s',
+                }}
+                onFocus={e => e.target.style.borderColor = BRAND.accent}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
-// ── DETALLE MOBILE DRAWER ──
+// ── CV UPLOADER ──────────────────────────────────────────────────────────────
+const CVUploader = ({ file, onChange, id = 'cv-upload' }) => (
+  <div>
+    <input type="file" id={id} accept=".pdf,.doc,.docx" onChange={onChange} style={{ display: 'none' }} />
+    <label htmlFor={id} style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', gap: 6,
+      width: '100%', height: 100,
+      border: `1.5px dashed ${file ? BRAND.accent : 'rgba(255,255,255,0.12)'}`,
+      borderRadius: 14, cursor: 'pointer',
+      background: file ? BRAND.accentSoft : 'rgba(255,255,255,0.03)',
+      transition: 'all .25s', WebkitTapHighlightColor: 'transparent',
+    }}>
+      <Upload size={22} color={file ? BRAND.accent : 'rgba(255,255,255,0.3)'} />
+      <span style={{ fontSize: 13, color: file ? '#fff' : 'rgba(255,255,255,0.5)' }}>
+        {file ? file.name : 'Adjunta tu CV (PDF o Word)'}
+      </span>
+      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>Máx. 5 MB</span>
+    </label>
+  </div>
+);
 
-const MobileDrawer = ({ job, onClose, onApply }) => {
-  
-  // 1. LA MAGIA PARA BLOQUEAR EL FONDO
-// 1. LA MAGIA PARA BLOQUEAR EL FONDO (A PRUEBA DE iPHONE)
+// ── SUCCESS SCREEN ───────────────────────────────────────────────────────────
+const SuccessScreen = ({ title, body, onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.92 }}
+    animate={{ opacity: 1, scale: 1 }}
+    style={{ textAlign: 'center', padding: '24px 0' }}
+  >
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ delay: 0.1, type: 'spring', stiffness: 280 }}
+      style={{
+        width: 72, height: 72, borderRadius: '50%',
+        background: BRAND.accentSoft, border: `1.5px solid ${BRAND.accentBorder}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        margin: '0 auto 20px',
+      }}
+    >
+      <CheckCircle2 size={32} color={BRAND.accent} />
+    </motion.div>
+    <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>{title}</h3>
+    <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, maxWidth: 280, margin: '0 auto 28px' }}>
+      {body}
+    </p>
+    <button
+      onClick={onClose}
+      style={{
+        padding: '10px 28px', borderRadius: 20,
+        border: '1px solid rgba(255,255,255,0.1)',
+        background: 'rgba(255,255,255,0.06)',
+        color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer',
+        transition: 'all .2s', WebkitTapHighlightColor: 'transparent',
+      }}
+    >Cerrar</button>
+  </motion.div>
+);
+
+// ── SCROLL LOCK — funciona en iOS Safari ─────────────────────────────────────
+// Safari ignora overflow:hidden en body. La solución real es fijar el body
+// en su posición actual con position:fixed y restaurar el scroll al cerrar.
+const useScrollLock = (active) => {
   useEffect(() => {
-    if (job) {
-      // Bloqueamos el body y el html (vital para iOS)
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-      document.documentElement.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.documentElement.style.overflow = 'unset';
+    if (!active) return;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const prevStyle = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      overflow: body.style.overflow,
     };
-  }, [job]);
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.overflow = 'hidden';
+    return () => {
+      body.style.position = prevStyle.position;
+      body.style.top = prevStyle.top;
+      body.style.left = prevStyle.left;
+      body.style.right = prevStyle.right;
+      body.style.overflow = prevStyle.overflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [active]);
+};
 
-  // Función para cerrar el modal si el usuario desliza hacia abajo
-  const handleDragEnd = (event, info) => {
-    if (info.offset.y > 100 || info.velocity.y > 500) {
+// ── MODAL BASE — mismo patrón estable que MobileDrawer ───────────────────────
+const Modal = ({ children, onClose }) => {
+  const [visible, setVisible] = useState(false);
+  const closingRef = useRef(false);
+
+  // Scroll lock iOS-safe
+  useScrollLock(true);
+
+  // Abrir con un tick de delay para que el DOM pinte primero
+  useEffect(() => {
+    requestAnimationFrame(() => setVisible(true));
+  }, []);
+
+  // Escape key
+  useEffect(() => {
+    const onKey = e => { if (e.key === 'Escape') triggerClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const triggerClose = () => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setVisible(false);
+    setTimeout(() => {
       onClose();
+    }, 340);
+  };
+
+  // Drag-to-dismiss igual que el drawer
+  const y = useMotionValue(0);
+  const overlayOpacity = useTransform(y, [0, 400], [1, 0]);
+  const scrollRef = useRef(null);
+
+  const handleDragEnd = (_, info) => {
+    if (info.offset.y > 100 || info.velocity.y > 500) {
+      triggerClose();
+    } else {
+      animate(y, 0, { type: 'spring', stiffness: 420, damping: 40 });
     }
   };
 
   return (
-    <AnimatePresence>
-      {job && (
-        <div className="fixed inset-0 z-[900] flex items-end lg:hidden">
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-black/40 backdrop-blur-[10px] touch-none overscroll-none"
-  onClick={onClose}
-          />
+    <>
+      <style>{`
+        @media (min-width: 600px) {
+          .modal-sheet { border-radius: 24px !important; max-width: 480px !important; }
+          .modal-wrap  { align-items: center !important; padding: 24px !important; }
+        }
+        .modal-scroll {
+          overflow-y: auto;
+          max-height: 92dvh;
+          padding: 28px 24px 40px;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-y: contain;
+          touch-action: pan-y;
+        }
+        .modal-scroll::-webkit-scrollbar { width: 3px; }
+        .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+        .modal-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+      `}</style>
 
+      {/* Overlay */}
+      <motion.div
+        initial={false}
+        animate={{ opacity: visible ? 1 : 0 }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        onClick={triggerClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 999,
+          background: 'rgba(0,0,0,0.72)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }}
+      >
+        {/* Wrapper que centra en desktop */}
+        <div
+          className="modal-wrap"
+          style={{
+            position: 'relative', zIndex: 1, width: '100%',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Sheet */}
           <motion.div
+            className="modal-sheet"
+            style={{
+              y,
+              position: 'relative', width: '100%', maxWidth: 480,
+              background: '#101010',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '24px 24px 0 0',
+              overflow: 'hidden',
+              boxShadow: '0 -24px 80px rgba(0,0,0,0.7)',
+              willChange: 'transform',
+            }}
+            initial={{ y: '100%' }}
+            animate={{ y: visible ? 0 : '100%' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 40, mass: 0.8 }}
             drag="y"
-            dragConstraints={{ top: 0 }}
-            dragElastic={0.08}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.04, bottom: 0 }}
+            dragMomentum={false}
             onDragEnd={handleDragEnd}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 26, stiffness: 260, mass: 0.8 }}
             onClick={e => e.stopPropagation()}
-            className="relative w-full bg-[#121212]/95 backdrop-blur-3xl border-t border-white/10 rounded-t-[32px] p-6 pb-10 max-h-[90vh] overflow-y-auto shadow-[0_-15px_50px_rgba(0,0,0,0.6)] overscroll-contain touch-pan-y"
->
-            <div className="w-12 h-1.5 rounded-full bg-white/25 mx-auto mb-7 cursor-grab active:cursor-grabbing" />
+            onPointerDown={e => {
+              if (scrollRef.current?.scrollTop > 0) e.stopPropagation();
+            }}
+          >
+            {/* Línea accent top */}
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+              background: `linear-gradient(90deg, transparent, ${BRAND.accent}, transparent)`,
+              pointerEvents: 'none',
+            }} />
 
-            <button onClick={onClose} className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center backdrop-blur-md transition-colors">
-              <X size={16} className="text-gray-300" />
+            {/* Handle drag */}
+            <div style={{
+              paddingTop: 14, paddingBottom: 6,
+              display: 'flex', justifyContent: 'center',
+              touchAction: 'none', cursor: 'grab',
+            }}>
+              <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)' }} />
+            </div>
+
+            {/* Botón X */}
+            <button
+              onClick={triggerClose}
+              aria-label="Cerrar"
+              style={{
+                position: 'absolute', top: 14, right: 14, zIndex: 10,
+                width: 30, height: 30, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background .2s', WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <X size={14} color="rgba(255,255,255,0.55)" />
             </button>
 
-            <div className="flex flex-wrap gap-2 mb-5 mt-1">
-              <span className="bg-qualtop-orange text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase">{job.tipo}</span>
-              <span className="bg-white/10 text-gray-300 text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase">ID: #{job._id?.slice(-4).toUpperCase()}</span>
-              {job.isNew && (
-                <span className="flex items-center gap-1 bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-bold px-3 py-1 rounded-full uppercase">
-                  <Sparkles size={10} /> Nuevo
-                </span>
-              )}
+            {/* Contenido scrollable */}
+            <div ref={scrollRef} className="modal-scroll">
+              {children}
             </div>
-
-            <h2 className="text-2xl font-bold text-white mb-2 leading-tight">{job.puesto}</h2>
-            <p className="text-gray-500 text-sm flex items-center gap-1.5 mb-6"><MapPin size={13} /> {job.ubicacion}</p>
-
-            <div className="grid grid-cols-2 gap-4 mb-8 border-y border-white/5 py-6">
-              <div><p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Ubicación</p><p className="text-gray-200 font-medium text-sm">{job.ubicacion}</p></div>
-              <div><p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Salario</p><p className="text-gray-200 font-medium text-sm">{job.salario}</p></div>
-            </div>
-
-            <div className="space-y-6 mb-8">
-              <div>
-                <h4 className="text-white font-bold mb-3 flex items-center gap-2 text-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-qualtop-orange" /> Descripción del rol
-                </h4>
-                <p className="text-gray-400 leading-relaxed font-light text-sm">{job.desc}</p>
-              </div>
-              {job.requisitos && job.requisitos.length > 0 && (
-                <div>
-                  <h4 className="text-white font-bold mb-3 flex items-center gap-2 text-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-qualtop-orange" /> Lo que te ayudará a tener éxito:
-                  </h4>
-                  <ul className="grid grid-cols-1 gap-2">
-                    {job.requisitos.map((req, i) => (
-                      <li key={i} className="flex items-center gap-3 text-sm text-gray-400 bg-white/5 p-3 rounded-xl border border-white/5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-qualtop-orange shrink-0" />{req}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            <ApplyButton job={job} onApply={onApply} />
           </motion.div>
         </div>
-      )}
-    </AnimatePresence>
+      </motion.div>
+    </>
   );
 };
 
-// ── BOTÓN POSTULARME ──
-const ApplyButton = ({ job, onApply }) => (
-  <motion.button
-    onClick={() => onApply(job)}
-    whileTap={{ scale: 0.97 }}
-    className="w-full mt-2 relative overflow-hidden bg-qualtop-orange text-white font-bold py-4 sm:py-5 rounded-2xl flex items-center justify-center gap-3 group shadow-[0_10px_30px_rgba(255,77,0,0.3)] hover:shadow-[0_14px_40px_rgba(255,77,0,0.45)] transition-shadow"
-  >
-    <motion.div
-      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
-      initial={{ x: "-100%" }}
-      whileHover={{ x: "200%" }}
-      transition={{ duration: 0.6, ease: "easeInOut" }}
-    />
-    <div className="absolute inset-0 bg-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    <span className="relative z-10 text-sm sm:text-base">Postularme a esta vacante</span>
-    <motion.div
-      className="relative z-10"
-      animate={{ x: [0, 3, 0], y: [0, -3, 0] }}
-      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-    >
-      <Send size={17} />
-    </motion.div>
-  </motion.button>
-);
+// ── SPONTANEOUS APPLY MODAL ──────────────────────────────────────────────────
+const SpontaneousApplyModal = ({ onClose }) => {
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const recaptchaRef = useRef(null);
 
-// ── COMPONENTE PRINCIPAL ──
+  const [formData, setFormData] = useState({
+    nombre: '', email: '', telefono: '', codigoPais: '+52',
+    metodoContacto: 'whatsapp', areaInteres: OPCIONES_AREA[0], cvFile: null,
+  });
+
+  const handleChange = e => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+  const handleFile = e => e.target.files?.[0] && setFormData(p => ({ ...p, cvFile: e.target.files[0] }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.cvFile) return alert("Por favor adjunta tu CV.");
+    setIsSubmitting(true);
+    try {
+      const token = await recaptchaRef.current.executeAsync();
+      if (!token) {
+        alert("Error de seguridad. Por favor, recarga la página.");
+        recaptchaRef.current.reset();
+        setIsSubmitting(false);
+        return;
+      }
+      const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+      const cvBase64Content = await fileToBase64(formData.cvFile);
+      const payload = {
+        nombre: formData.nombre, email: formData.email,
+        telefono: `${formData.codigoPais} ${formData.telefono}`,
+        area: "Postulación abierta",
+        puesto: "Interés en: " + formData.areaInteres,
+        cvBase64: cvBase64Content, cvMimeType: formData.cvFile.type,
+        recaptchaToken: token,
+      };
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (result.status === "error") throw new Error(result.mensaje);
+      recaptchaRef.current.reset();
+      setIsSubmitting(false);
+      setStep(2);
+    } catch (error) {
+      console.error("Error en el envío:", error);
+      alert("Hubo un error al enviar tu información. Intenta de nuevo.");
+      recaptchaRef.current.reset();
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal onClose={onClose}>
+      {step === 1 ? (
+        <motion.form onSubmit={handleSubmit} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div style={{ marginBottom: 20 }}>
+            <span style={{ fontSize: 10, letterSpacing: '0.3em', color: BRAND.accent, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+              Talent Network
+            </span>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Únete a nuestra red</h3>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
+              Déjanos tu CV y te avisamos cuando haya un reto para ti.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+            <Field icon={User} type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Nombre completo" required />
+            <Field icon={Mail} type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Correo electrónico" required />
+            <ContactPicker
+              value={formData.metodoContacto}
+              onChange={v => setFormData(p => ({ ...p, metodoContacto: v }))}
+              telefono={formData.telefono} onTelChange={handleChange}
+              codigoPais={formData.codigoPais} onCodigoChange={handleChange}
+            />
+            <div>
+              <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 8, display: 'block' }}>
+                ¿En qué área te gustaría desarrollarte?
+              </label>
+              <div style={{ position: 'relative' }}>
+                <select
+                  name="areaInteres" value={formData.areaInteres} onChange={handleChange}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                    borderRadius: 12, padding: '12px 36px 12px 14px',
+                    color: '#fff', fontSize: 13, outline: 'none', appearance: 'none', cursor: 'pointer',
+                  }}
+                >
+                  {OPCIONES_AREA.map(a => (
+                    <option key={a} value={a} style={{ color: '#000' }}>{a}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+              </div>
+            </div>
+            <CVUploader file={formData.cvFile} onChange={handleFile} id="cv-spont" />
+          </div>
+          <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey="6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H" />
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 16, textAlign: 'center', lineHeight: 1.4 }}>
+            Este sitio está protegido por reCAPTCHA y se aplican la{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'underline' }}>Política de Privacidad</a> y los{' '}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'underline' }}>Términos de Servicio</a> de Google.
+          </div>
+          <button
+            type="submit" disabled={isSubmitting}
+            style={{
+              width: '100%', padding: '14px', borderRadius: 16,
+              background: BRAND.accent, border: 'none',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              opacity: isSubmitting ? 0.7 : 1,
+              color: '#fff', fontSize: 14, fontWeight: 700,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'background .2s, transform .1s',
+              boxShadow: `0 8px 24px ${BRAND.accentSoft}`,
+              WebkitTapHighlightColor: 'transparent',
+            }}
+            onMouseEnter={e => !isSubmitting && (e.currentTarget.style.background = BRAND.accentMid)}
+            onMouseLeave={e => !isSubmitting && (e.currentTarget.style.background = BRAND.accent)}
+          >
+            {isSubmitting
+              ? <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>Enviando... <Loader2 size={16} className="animate-spin" /></span>
+              : <>Enviar mi CV <Send size={14} /></>}
+          </button>
+        </motion.form>
+      ) : (
+        <SuccessScreen
+          title="¡Ya estás en el radar!"
+          body="Tu CV se guardó en nuestra base de talentos. En cuanto tengamos el reto ideal para ti, te escribiremos."
+          onClose={onClose}
+        />
+      )}
+    </Modal>
+  );
+};
+
+// ── APPLY MODAL ──────────────────────────────────────────────────────────────
+const ApplyModal = ({ job, onClose }) => {
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const recaptchaRef = useRef(null);
+
+  const [formData, setFormData] = useState({
+    nombre: '', email: '', telefono: '', codigoPais: '+52',
+    metodoContacto: 'whatsapp',
+    certificado: 'no', certAno: '', certVigente: 'si',
+    cvFile: null, certFile: null,
+  });
+
+  if (!job) return null;
+  const handleChange = e => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+  const handleFile = e => e.target.files?.[0] && setFormData(p => ({ ...p, cvFile: e.target.files[0] }));
+  const handleCertFile = e => e.target.files?.[0] && setFormData(p => ({ ...p, certFile: e.target.files[0] }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.cvFile) return alert("Por favor adjunta tu CV.");
+    if (formData.certificado === 'si') {
+      if (!formData.certAno.trim()) return alert("Por favor ingresa el año de tu certificación.");
+      if (!formData.certFile) return alert("Por favor adjunta el documento de tu certificación.");
+    }
+    setIsSubmitting(true);
+    try {
+      const token = await recaptchaRef.current.executeAsync();
+      if (!token) { alert("Error de seguridad."); setIsSubmitting(false); return; }
+      const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+      const cvBase64Content = await fileToBase64(formData.cvFile);
+      let certBase64Content = null, certMimeType = null;
+      if (formData.certificado === 'si' && formData.certFile) {
+        certBase64Content = await fileToBase64(formData.certFile);
+        certMimeType = formData.certFile.type;
+      }
+      const payload = {
+        nombre: formData.nombre, email: formData.email,
+        telefono: `${formData.codigoPais} ${formData.telefono}`,
+        area: job.area, puesto: job.puesto,
+        cvBase64: cvBase64Content, cvMimeType: formData.cvFile.type,
+        certBase64: certBase64Content, certMimeType,
+        certAno: formData.certificado === 'si' ? formData.certAno : 'N/A',
+        certVigente: formData.certificado === 'si' ? formData.certVigente : 'N/A',
+        recaptchaToken: token,
+      };
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (result.status === "error") throw new Error(result.mensaje);
+      setIsSubmitting(false);
+      setStep(3);
+    } catch (error) {
+      console.error(error);
+      alert("Hubo un error al enviar la postulación. Intenta de nuevo.");
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal onClose={onClose}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <ProgressDots total={2} current={step === 3 ? 2 : step} />
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em' }}>
+          {step < 3 ? `PASO ${step} DE 2` : ''}
+        </span>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {step === 1 && (
+          <motion.div key="s1" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
+            <span style={{ fontSize: 10, letterSpacing: '0.3em', color: BRAND.accent, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>Postulación</span>
+            <h3 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 6, lineHeight: 1.3 }}>{job.puesto}</h3>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 24 }}>
+              <MapPin size={12} /> {job.ubicacion}
+            </p>
+            {job.requisitos?.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8, marginBottom: 24 }}>
+                {job.requisitos.slice(0, 4).map((req, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: 10, padding: '10px 12px', fontSize: 12, color: 'rgba(255,255,255,0.5)',
+                  }}>
+                    <div style={{ width: 5, height: 5, borderRadius: '50%', background: BRAND.accent, flexShrink: 0 }} />
+                    {req}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={onClose} style={{
+                flex: 1, padding: '13px', borderRadius: 14,
+                border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
+                color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              }}>Cancelar</button>
+              <button onClick={() => setStep(2)} style={{
+                flex: 2, padding: '13px', borderRadius: 14,
+                border: 'none', background: BRAND.accent, color: '#fff', fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                transition: 'background .2s', WebkitTapHighlightColor: 'transparent',
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = BRAND.accentMid}
+                onMouseLeave={e => e.currentTarget.style.background = BRAND.accent}
+              >
+                Continuar <ChevronRight size={15} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 2 && (
+          <motion.form key="s2" onSubmit={handleSubmit} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Completa tu perfil</h3>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>
+              Aplicando a: <span style={{ color: 'rgba(255,255,255,0.7)' }}>{job.puesto}</span>
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+              <Field icon={User} type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Nombre completo" required />
+              <Field icon={Mail} type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Correo electrónico" required />
+              <ContactPicker
+                value={formData.metodoContacto}
+                onChange={v => setFormData(p => ({ ...p, metodoContacto: v }))}
+                telefono={formData.telefono} onTelChange={handleChange}
+                codigoPais={formData.codigoPais} onCodigoChange={handleChange}
+              />
+              <div style={{
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 14, padding: '14px',
+              }}>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 12 }}>
+                  ¿Cuentas con alguna certificación relacionada al puesto?
+                </p>
+                <div style={{ display: 'flex', gap: 20, marginBottom: 12 }}>
+                  {['si', 'no'].map(v => {
+                    const isChecked = formData.certificado === v;
+                    return (
+                      <label key={v} style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        cursor: 'pointer', fontSize: 13, color: '#fff',
+                        WebkitTapHighlightColor: 'transparent',
+                      }}>
+                        <input
+                          type="radio" name="certificado" value={v}
+                          checked={isChecked} onChange={handleChange}
+                          style={{ display: 'none' }}
+                        />
+                        <div style={{
+                          width: 18, height: 18, borderRadius: '50%',
+                          border: `1.5px solid ${isChecked ? BRAND.accent : 'rgba(255,255,255,0.25)'}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'border-color 0.2s ease',
+                        }}>
+                          <AnimatePresence>
+                            {isChecked && (
+                              <motion.div
+                                initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                style={{ width: 10, height: 10, borderRadius: '50%', background: BRAND.accent }}
+                              />
+                            )}
+                          </AnimatePresence>
+                        </div>
+                        {v === 'si' ? 'Sí' : 'No'}
+                      </label>
+                    );
+                  })}
+                </div>
+                <AnimatePresence>
+                  {formData.certificado === 'si' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{
+                        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10,
+                        paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.07)',
+                      }}>
+                        <div>
+                          <label style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>Año</label>
+                          <input type="text" name="certAno" value={formData.certAno} onChange={handleChange} placeholder="2023" required={formData.certificado === 'si'}
+                            style={{
+                              width: '100%', boxSizing: 'border-box',
+                              background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)',
+                              borderRadius: 10, padding: '9px 12px', color: '#fff',
+                              fontSize: 'max(16px, 13px)', outline: 'none',
+                            }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>¿Vigente?</label>
+                          <div style={{ position: 'relative' }}>
+                            <select name="certVigente" value={formData.certVigente} onChange={handleChange}
+                              style={{
+                                width: '100%', boxSizing: 'border-box',
+                                background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: 10, padding: '9px 30px 9px 12px',
+                                color: '#fff', fontSize: 13, outline: 'none', appearance: 'none',
+                              }}>
+                              <option value="si">Sí</option>
+                              <option value="no">No</option>
+                            </select>
+                            <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 16 }}>
+                        <input type="file" id="cert-upload" accept=".pdf,.png,.jpg,.jpeg" onChange={handleCertFile} style={{ display: 'none' }} />
+                        <label htmlFor="cert-upload" style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          width: '100%', padding: '12px',
+                          border: `1px dashed ${formData.certFile ? BRAND.accent : 'rgba(255,255,255,0.15)'}`,
+                          borderRadius: 10, cursor: 'pointer',
+                          background: formData.certFile ? BRAND.accentSoft : 'rgba(0,0,0,0.2)',
+                          transition: 'all 0.2s',
+                        }}>
+                          <Upload size={14} color={formData.certFile ? BRAND.accent : 'rgba(255,255,255,0.4)'} />
+                          <span style={{ fontSize: 12, color: formData.certFile ? '#fff' : 'rgba(255,255,255,0.5)' }}>
+                            {formData.certFile ? formData.certFile.name : 'Adjuntar comprobante (PDF o JPG)'}
+                          </span>
+                        </label>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <CVUploader file={formData.cvFile} onChange={handleFile} />
+            </div>
+            <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey="6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H" />
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 16, textAlign: 'center', lineHeight: 1.4 }}>
+              Este sitio está protegido por reCAPTCHA y se aplican la{' '}
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'underline' }}>Política de Privacidad</a> y los{' '}
+              <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'underline' }}>Términos de Servicio</a> de Google.
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="button" onClick={() => setStep(1)} style={{
+                padding: '13px 18px', borderRadius: 14,
+                border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
+                color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              }}>Atrás</button>
+              <button
+                type="submit" disabled={isSubmitting}
+                style={{
+                  flex: 1, padding: '13px', borderRadius: 14,
+                  border: 'none', background: BRAND.accent,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  opacity: isSubmitting ? 0.7 : 1,
+                  color: '#fff', fontSize: 14, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  boxShadow: `0 6px 20px ${BRAND.accentSoft}`,
+                  transition: 'background .2s', WebkitTapHighlightColor: 'transparent',
+                }}
+                onMouseEnter={e => !isSubmitting && (e.currentTarget.style.background = BRAND.accentMid)}
+                onMouseLeave={e => !isSubmitting && (e.currentTarget.style.background = BRAND.accent)}
+              >
+                {isSubmitting
+                  ? <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>Enviando... <Loader2 size={16} className="animate-spin" /></span>
+                  : <>Enviar postulación <Send size={14} /></>}
+              </button>
+            </div>
+          </motion.form>
+        )}
+
+        {step === 3 && (
+          <motion.div key="s3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+            <SuccessScreen
+              title="¡Postulación enviada!"
+              body={`Recibimos tu info para ${job.puesto}. Nuestro equipo te contactará pronto.`}
+              onClose={onClose}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Modal>
+  );
+};
+
+// ── MOBILE DRAWER — Apple-style, sin flicker ────────────────────────────────
+// Patrón: el componente siempre está montado cuando job != null.
+// Manejamos "visible" internamente para poder esperar el exit antes de llamar onClose.
+const MobileDrawer = ({ job, onClose, onApply }) => {
+  const [currentJob, setCurrentJob] = useState(job);
+  const [visible, setVisible] = useState(false);
+
+  const y = useMotionValue(0);
+  const overlayOpacity = useTransform(y, [0, 600], [1, 0]);
+  const scrollRef = useRef(null);
+  const closingRef = useRef(false); // evita doble-trigger
+
+  // Cuando llega un job nuevo → guardarlo y abrir
+  useEffect(() => {
+    if (job) {
+      closingRef.current = false;
+      setCurrentJob(job);
+      y.set(0);
+      // pequeño tick para que el DOM pinte antes de animar
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      triggerClose();
+    }
+  }, [job]);
+
+  // Scroll lock iOS-safe
+  useScrollLock(visible);
+
+  const triggerClose = () => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setVisible(false);
+    // Esperar que termine la animación de salida (~380ms) antes de notificar al padre
+    setTimeout(() => {
+      onClose();
+      closingRef.current = false;
+    }, 380);
+  };
+
+  const handleDragEnd = (_, info) => {
+    if (info.offset.y > 110 || info.velocity.y > 500) {
+      triggerClose();
+    } else {
+      animate(y, 0, { type: 'spring', stiffness: 420, damping: 40 });
+    }
+  };
+
+  if (!currentJob) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 900,
+        display: 'flex', alignItems: 'flex-end',
+        // Ocultar contenedor cuando no es visible para no bloquear clicks
+        pointerEvents: visible ? 'auto' : 'none',
+      }}
+      className="lg-hidden"
+    >
+      {/* Overlay */}
+      <motion.div
+        initial={false}
+        animate={{ opacity: visible ? 1 : 0 }}
+        transition={{ duration: 0.28, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}
+        onClick={triggerClose}
+      />
+
+      {/* Drawer */}
+      <motion.div
+        initial={false}
+        animate={{ y: visible ? 0 : '100%' }}
+        transition={{ type: 'spring', stiffness: 400, damping: 42, mass: 0.8 }}
+        style={{
+          y,
+          position: 'relative', width: '100%',
+          background: 'rgba(13,13,13,0.99)',
+          borderTop: '1px solid rgba(255,255,255,0.09)',
+          borderRadius: '28px 28px 0 0',
+          maxHeight: '88dvh',
+          willChange: 'transform',
+          boxShadow: '0 -20px 60px rgba(0,0,0,0.6)',
+          zIndex: 1,
+        }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0.04, bottom: 0 }}
+        dragMomentum={false}
+        onDragEnd={handleDragEnd}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Handle */}
+        <div style={{
+          paddingTop: 14, paddingBottom: 8,
+          display: 'flex', justifyContent: 'center',
+          touchAction: 'none', cursor: 'grab',
+        }}>
+          <div style={{ width: 40, height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.2)' }} />
+        </div>
+
+        {/* Botón X */}
+        <button
+          onClick={triggerClose}
+          style={{
+            position: 'absolute', top: 14, right: 16, zIndex: 10,
+            width: 30, height: 30, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          <X size={14} color="rgba(255,255,255,0.55)" />
+        </button>
+
+        {/* Contenido scrollable */}
+        <div
+          ref={scrollRef}
+          style={{
+            overflowY: 'auto',
+            maxHeight: 'calc(88dvh - 50px)',
+            padding: '4px 20px 44px',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            touchAction: 'pan-y',
+          }}
+          onPointerDown={e => {
+            if (scrollRef.current?.scrollTop > 0) e.stopPropagation();
+          }}
+        >
+          {/* Badges */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+            <span style={{
+              background: BRAND.accentSoft, border: `1px solid ${BRAND.accentBorder}`,
+              color: BRAND.accent, fontSize: 10, fontWeight: 700,
+              padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.1em',
+            }}>{currentJob.tipo}</span>
+            {currentJob.isNew && (
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
+                color: '#4ade80', fontSize: 10, fontWeight: 700,
+                padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase',
+              }}>
+                <Sparkles size={9} /> Nuevo
+              </span>
+            )}
+          </div>
+
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: '#fff', marginBottom: 6, lineHeight: 1.2 }}>
+            {currentJob.puesto}
+          </h2>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 24 }}>
+            <MapPin size={12} /> {currentJob.ubicacion}
+          </p>
+
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24,
+            padding: '16px 0',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+          }}>
+            {[['Ubicación', currentJob.ubicacion], ['Salario', currentJob.salario]].map(([label, value]) => (
+              <div key={label}>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{label}</p>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: 24 }}>
+            <h4 style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: BRAND.accent }} /> Descripción del rol
+            </h4>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>{currentJob.desc}</p>
+          </div>
+
+          {currentJob.requisitos?.length > 0 && (
+            <div style={{ marginBottom: 28 }}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: BRAND.accent }} /> Lo que te ayudará a tener éxito
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {currentJob.requisitos.map((req, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, fontSize: 13,
+                    color: 'rgba(255,255,255,0.5)',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: 10, padding: '10px 12px',
+                  }}>
+                    <div style={{ width: 5, height: 5, borderRadius: '50%', background: BRAND.accent, flexShrink: 0 }} />
+                    {req}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <ApplyButton job={currentJob} onApply={onApply} />
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// ── APPLY BUTTON ─────────────────────────────────────────────────────────────
+const ApplyButton = ({ job, onApply }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <motion.button
+      onClick={() => onApply(job)}
+      whileTap={{ scale: 0.97 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      style={{
+        width: '100%', padding: '16px 24px',
+        borderRadius: 18, border: 'none', cursor: 'pointer',
+        background: hovered ? BRAND.accentMid : BRAND.accent,
+        color: '#fff', fontSize: 15, fontWeight: 700,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        transition: 'background .2s',
+        boxShadow: `0 10px 32px rgba(232,80,10,0.25)`,
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      Postularme a esta vacante
+      <motion.div animate={{ x: hovered ? 3 : 0, y: hovered ? -2 : 0 }} transition={{ duration: 0.2 }}>
+        <Send size={16} />
+      </motion.div>
+    </motion.button>
+  );
+};
+
+// ── JOB CARD ─────────────────────────────────────────────────────────────────
+const JobCard = ({ job, isSelected, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+  
+  // Determinamos cómo mostrar el área de forma segura
+  const areasDisplay = Array.isArray(job.area) ? job.area.join(', ') : job.area;
+
+  return (
+    <motion.div
+      onClick={onClick}
+      whileHover={{ x: 3 }}
+      whileTap={{ scale: 0.99 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      style={{
+        padding: '18px 20px', borderRadius: 16, cursor: 'pointer',
+        position: 'relative', overflow: 'hidden',
+        border: isSelected
+          ? `1px solid ${BRAND.accentBorder}`
+          : `1px solid rgba(255,255,255,${hovered ? '0.1' : '0.05'})`,
+        background: isSelected
+          ? BRAND.accentSoft
+          : `rgba(255,255,255,${hovered ? '0.04' : '0.02'})`,
+        transition: 'border-color .2s, background .2s',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      <motion.div
+        animate={{ scaleY: isSelected ? 1 : 0, opacity: isSelected ? 1 : 0 }}
+        style={{
+          position: 'absolute', left: 0, top: 12, bottom: 12, width: 3,
+          background: BRAND.accent, borderRadius: 99, transformOrigin: 'center',
+        }}
+      />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingLeft: isSelected ? 8 : 0, transition: 'padding .2s', marginBottom: 8 }}>
+        <div style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
+          {job.isNew && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 6,
+              background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
+              color: '#4ade80', fontSize: 9, fontWeight: 700,
+              padding: '3px 8px', borderRadius: 99, textTransform: 'uppercase',
+            }}>
+              <Sparkles size={8} /> Nuevo
+            </span>
+          )}
+          <h3 style={{
+            fontSize: 15, fontWeight: 700, lineHeight: 1.3,
+            color: isSelected ? '#fff' : 'rgba(255,255,255,0.85)',
+            display: 'block',
+          }}>{job.puesto}</h3>
+        </div>
+        <motion.div animate={{ x: isSelected ? 2 : 0 }}>
+          <ChevronRight size={16} color={isSelected ? BRAND.accent : 'rgba(255,255,255,0.2)'} />
+        </motion.div>
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 12, color: 'rgba(255,255,255,0.35)', paddingLeft: isSelected ? 8 : 0, transition: 'padding .2s' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Briefcase size={11} color={BRAND.accent} /> {areasDisplay}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <MapPin size={11} /> {job.ubicacion}
+        </span>
+      </div>
+    </motion.div>
+  );
+};
+
+// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function VacantesSection() {
   const [vacantes, setVacantes] = useState([]);
+  const [areasDinamicas, setAreasDinamicas] = useState(['Todas']);
   const [isLoading, setIsLoading] = useState(true);
-  
   const [selectedJob, setSelectedJob] = useState(null);
   const [search, setSearch] = useState('');
   const [activeArea, setActiveArea] = useState('Todas');
   const [applyJob, setApplyJob] = useState(null);
   const [drawerJob, setDrawerJob] = useState(null);
+  const [isSpontaneousOpen, setIsSpontaneousOpen] = useState(false);
 
-  useEffect(() => {
-    const query = '*[_type == "vacante" && isActive == true] | order(_createdAt desc)';
-    
-    client.fetch(query)
-      .then((data) => {
+useEffect(() => {
+    client.fetch('*[_type == "vacante" && isActive == true] | order(_createdAt desc)')
+      .then(data => {
         setVacantes(data);
-        if (data.length > 0) {
-          setSelectedJob(data[0]);
-        }
+        if (data.length > 0) setSelectedJob(data[0]);
+
+        // Usamos flatMap para aplanar el arreglo de áreas de cada vacante y obtener una lista única
+        const areasUnicas = ['Todas', ...new Set(data.flatMap(job => job.area || []))];
+        setAreasDinamicas(areasUnicas);
+        
         setIsLoading(false);
       })
-      .catch((error) => {
-        console.error("Error al traer las vacantes:", error);
-        setIsLoading(false);
-      });
+      .catch(err => { console.error(err); setIsLoading(false); });
   }, []);
 
   const filtered = vacantes.filter(job => {
-    const matchesArea = activeArea === 'Todas' || job.area === activeArea;
-    const matchesSearch =
-      job.puesto?.toLowerCase().includes(search.toLowerCase()) ||
-      (job.requisitos && job.requisitos.some(r => r.toLowerCase().includes(search.toLowerCase())));
-    return matchesArea && matchesSearch;
+    const matchArea = activeArea === 'Todas' || (job.area && job.area.includes(activeArea));
+    const q = search.toLowerCase();
+    const matchSearch = !q
+      || job.puesto?.toLowerCase().includes(q)
+      || job.requisitos?.some(r => r.toLowerCase().includes(q));
+    return matchArea && matchSearch;
   });
 
-  const handleCardClick = (job) => {
+  const handleCardClick = job => {
     setSelectedJob(job);
     if (window.innerWidth < 1024) setDrawerJob(job);
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full min-h-[50vh] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-white/10 border-t-qualtop-orange rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  if (isLoading) return (
+    <div style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: '50%',
+        border: `3px solid rgba(255,255,255,0.08)`,
+        borderTopColor: BRAND.accent,
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
   return (
     <>
-      <div className="w-full max-w-7xl mx-auto">
-        {/* ── HEADER ── */}
-        <div className="mb-10 md:mb-14">
+      <style>{`
+        .lg-hidden { display: block; }
+        @media (min-width: 1024px) { .lg-hidden { display: none; } }
+        .lg-grid { display: none; }
+        @media (min-width: 1024px) { .lg-grid { display: block; } }
+        .job-list::-webkit-scrollbar { width: 4px; }
+        .job-list::-webkit-scrollbar-track { background: transparent; }
+        .job-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+        .search-input::placeholder { color: rgba(255,255,255,0.2); }
+        .area-scroll { scrollbar-width: none; }
+        .area-scroll::-webkit-scrollbar { display: none; }
+        button, label, a { -webkit-tap-highlight-color: transparent; }
+        @media (min-width: 1024px) { .vacantes-grid { grid-template-columns: 5fr 7fr !important; gap: 28px !important; } }
+      `}</style>
+
+      <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto' }}>
+        {/* HEADER */}
+        <div style={{ marginBottom: 40 }}>
           <motion.span
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-[10px] text-qualtop-orange font-bold tracking-[0.35em] uppercase block mb-3"
+            initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            style={{ fontSize: 10, color: BRAND.accent, fontWeight: 700, letterSpacing: '0.35em', textTransform: 'uppercase', display: 'block', marginBottom: 10 }}
           >
             Oportunidades Abiertas
           </motion.span>
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="font-bold text-white leading-tight"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.08 }}
+            style={{ fontWeight: 800, color: '#fff', lineHeight: 1.15, fontSize: 'clamp(2rem, 5vw, 3.5rem)', margin: 0 }}
           >
-            Encuentra tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-qualtop-orange to-orange-400">próximo reto.</span>
+            Encuentra tu{' '}
+            <span style={{ color: BRAND.accent }}>próximo reto.</span>
           </motion.h2>
         </div>
 
-        {/* ── FILTROS ── */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8 md:mb-12">
-          <div className="relative w-full sm:w-80 md:w-96 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-qualtop-orange transition-colors" size={17} />
+        {/* FILTERS */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
+          <div style={{ position: 'relative', maxWidth: 380 }}>
+            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.25)' }} />
             <input
+              className="search-input"
               type="text" value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar por puesto o tecnología..."
-              className="w-full bg-white/5 border border-white/10 rounded-full py-3 pl-11 pr-5 outline-none focus:border-qualtop-orange focus:bg-white/8 transition-all text-sm text-white placeholder:text-gray-600"
+              placeholder="Buscar por puesto o tecnología…"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 99, padding: '11px 16px 11px 42px',
+                color: '#fff', fontSize: 'max(16px, 14px)', outline: 'none',
+                transition: 'border-color .2s',
+              }}
+              onFocus={e => e.target.style.borderColor = BRAND.accentBorder}
+              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
             />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 flex-nowrap">
-            {areas.map(cat => (
-              <button key={cat} onClick={() => setActiveArea(cat)}
-                className={`px-4 sm:px-5 py-2.5 rounded-full border transition-all text-xs font-semibold whitespace-nowrap shrink-0 ${
-                  activeArea === cat
-                    ? 'bg-qualtop-orange border-qualtop-orange text-white shadow-[0_4px_16px_rgba(255,77,0,0.3)]'
-                    : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/25 hover:text-white'
-                }`}
-              >
-                {cat}
-              </button>
+          <div className="area-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+            {areasDinamicas.map(cat => (
+              <button
+                key={cat} onClick={() => setActiveArea(cat)}
+                style={{
+                  padding: '8px 16px', borderRadius: 99, border: 'none',
+                  cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,
+                  background: activeArea === cat ? BRAND.accent : 'rgba(255,255,255,0.05)',
+                  color: activeArea === cat ? '#fff' : 'rgba(255,255,255,0.4)',
+                  boxShadow: activeArea === cat ? `0 4px 14px rgba(232,80,10,0.2)` : 'none',
+                  transition: 'all .2s', WebkitTapHighlightColor: 'transparent',
+                }}
+              >{cat}</button>
             ))}
           </div>
         </div>
 
-        {/* ── MASTER-DETAIL ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
-          {/* Lista */}
-          <div className="lg:col-span-5 space-y-3 lg:max-h-[820px] lg:overflow-y-auto lg:pr-2">
+        {/* MASTER–DETAIL */}
+        <div className="vacantes-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
+          {/* LIST */}
+          <div className="job-list" style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 820, overflowY: 'auto', paddingRight: 4 }}>
             {filtered.length === 0 && (
-              <p className="text-gray-600 text-sm py-10 text-center">No se encontraron vacantes activas en esta área.</p>
+              <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 14, textAlign: 'center', padding: '40px 0' }}>
+                No hay vacantes en esta área por el momento.
+              </p>
             )}
-            {filtered.map((job) => (
+            {filtered.map((job, idx) => (
               <motion.div
                 key={job._id}
-                onClick={() => handleCardClick(job)}
-                whileHover={{ x: 4 }}
-                whileTap={{ scale: 0.99 }}
-                className={`p-5 sm:p-6 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden group ${
-                  selectedJob?._id === job._id
-                    ? 'bg-qualtop-orange/10 border-qualtop-orange shadow-[0_0_24px_rgba(255,77,0,0.12)]'
-                    : 'bg-white/[0.02] border-white/8 hover:border-white/20 hover:bg-white/[0.04]'
-                }`}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.04 }}
               >
-                <div
-  className={`absolute left-0 top-4 bottom-4 w-[3px] bg-qualtop-orange rounded-full transition-all duration-300 origin-center ${
-    selectedJob?._id === job._id ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'
-  }`}
-/>
-
-                <div className="flex justify-between items-start mb-2 pl-2">
-                  <div className="flex flex-col items-start gap-1.5 flex-1 min-w-0 pr-3">
-                    {job.isNew && (
-                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-green-400 text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wider uppercase">
-                        <Sparkles size={9} /> Nuevo
-                      </span>
-                    )}
-                    <h3 className={`font-bold text-base sm:text-lg leading-snug ${selectedJob?._id === job._id ? 'text-white' : 'text-gray-200'}`}>
-                      {job.puesto}
-                    </h3>
-                  </div>
-                  <ChevronRight size={17} className={`shrink-0 mt-1 transition-all duration-300 ${selectedJob?._id === job._id ? 'translate-x-1 text-qualtop-orange' : 'text-gray-600'}`} />
-                </div>
-                <div className="flex flex-wrap gap-3 text-xs text-gray-500 pl-2">
-                  <span className="flex items-center gap-1.5"><Briefcase size={12} className="text-qualtop-orange" />{job.area}</span>
-                  <span className="flex items-center gap-1.5"><MapPin size={12} />{job.ubicacion}</span>
-                </div>
+                <JobCard job={job} isSelected={selectedJob?._id === job._id} onClick={() => handleCardClick(job)} />
               </motion.div>
             ))}
           </div>
 
-          {/* Detalle desktop */}
-          <div className="hidden lg:block lg:col-span-7 sticky top-28">
+          {/* DETAIL — desktop only */}
+          <div className="lg-grid" style={{ position: 'sticky', top: 100 }}>
             <AnimatePresence mode="wait">
               {selectedJob && (
                 <motion.div
                   key={selectedJob._id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                  className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 xl:p-12 relative overflow-hidden"
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.24 }}
+                  style={{
+                    background: 'rgba(255,255,255,0.025)', backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: 24, padding: 36, position: 'relative', overflow: 'hidden',
+                  }}
                 >
-                  <div className="absolute top-0 right-0 p-8 opacity-[0.025] pointer-events-none select-none">
-                    <Briefcase size={180} />
-                  </div>
-                  <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-qualtop-orange/5 blur-[80px] rounded-full pointer-events-none" />
-
-                  <div className="relative z-10">
-                    <div className="flex flex-wrap items-center gap-2 mb-6">
-                      <span className="bg-qualtop-orange text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase">{selectedJob.tipo}</span>
-                      <span className="bg-white/8 text-gray-400 text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase">ID: #{selectedJob._id.slice(-4).toUpperCase()}</span>
+                  <div style={{
+                    position: 'absolute', bottom: -60, right: -60, width: 220, height: 220,
+                    background: BRAND.accentSoft, borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none',
+                  }} />
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                      <span style={{
+                        background: BRAND.accentSoft, border: `1px solid ${BRAND.accentBorder}`,
+                        color: BRAND.accent, fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.1em',
+                      }}>{selectedJob.tipo}</span>
+                      <span style={{
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 99, textTransform: 'uppercase',
+                      }}>ID: #{selectedJob._id?.slice(-4).toUpperCase()}</span>
                       {selectedJob.isNew && (
-                        <span className="flex items-center gap-1 bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase ml-auto">
-                          <Sparkles size={11} /> Vacante Reciente
+                        <span style={{
+                          marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4,
+                          background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.18)',
+                          color: '#4ade80', fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 99, textTransform: 'uppercase',
+                        }}>
+                          <Sparkles size={10} /> Vacante reciente
                         </span>
                       )}
                     </div>
-
-                    <h2 className="text-2xl xl:text-4xl font-bold mb-6 text-white leading-tight">{selectedJob.puesto}</h2>
-
-                    <div className="grid grid-cols-2 gap-6 mb-8 border-y border-white/5 py-6">
-                      <div><p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1.5">Ubicación</p><p className="text-gray-200 font-medium text-sm">{selectedJob.ubicacion}</p></div>
-                      <div><p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1.5">Salario esperado</p><p className="text-gray-200 font-medium text-sm">{selectedJob.salario}</p></div>
-                    </div>
-
-                    <div className="space-y-7">
-                      <div>
-                        <h4 className="text-white font-bold mb-3 flex items-center gap-2 text-sm">
-                          <div className="w-1.5 h-1.5 rounded-full bg-qualtop-orange" /> Descripción del rol
-                        </h4>
-                        <p className="text-gray-400 leading-relaxed font-light text-sm xl:text-base">{selectedJob.desc}</p>
-                      </div>
-                      
-                      {selectedJob.requisitos && selectedJob.requisitos.length > 0 && (
-                        <div>
-                          <h4 className="text-white font-bold mb-4 flex items-center gap-2 text-sm">
-                            <div className="w-1.5 h-1.5 rounded-full bg-qualtop-orange" /> Lo que te ayudará a tener éxito:
-                          </h4>
-                          <ul className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
-                            {selectedJob.requisitos.map((req, i) => (
-                              <li key={i} className="flex items-center gap-3 text-sm text-gray-400 bg-white/[0.04] p-3 rounded-xl border border-white/5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-qualtop-orange shrink-0" />{req}
-                              </li>
-                            ))}
-                          </ul>
+                    <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, color: '#fff', lineHeight: 1.2, marginBottom: 20 }}>
+                      {selectedJob.puesto}
+                    </h2>
+                    <div style={{
+                      display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24,
+                      padding: '20px 0', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                      {[['Ubicación', selectedJob.ubicacion], ['Salario esperado', selectedJob.salario]].map(([label, value]) => (
+                        <div key={label}>
+                          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{label}</p>
+                          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{value}</p>
                         </div>
-                      )}
+                      ))}
                     </div>
-
-                    <div className="mt-10">
-                      <ApplyButton job={selectedJob} onApply={setApplyJob} />
+                    <div style={{ marginBottom: 24 }}>
+                      <h4 style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: BRAND.accent }} /> Descripción del rol
+                      </h4>
+                      <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', lineHeight: 1.8 }}>{selectedJob.desc}</p>
                     </div>
+                    {selectedJob.requisitos?.length > 0 && (
+                      <div style={{ marginBottom: 32 }}>
+                        <h4 style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 5, height: 5, borderRadius: '50%', background: BRAND.accent }} /> Lo que te ayudará a tener éxito
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
+                          {selectedJob.requisitos.map((req, i) => (
+                            <div key={i} style={{
+                              display: 'flex', alignItems: 'center', gap: 10, fontSize: 13,
+                              color: 'rgba(255,255,255,0.45)', background: 'rgba(255,255,255,0.03)',
+                              border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px',
+                            }}>
+                              <div style={{ width: 5, height: 5, borderRadius: '50%', background: BRAND.accent, flexShrink: 0 }} />
+                              {req}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <ApplyButton job={selectedJob} onApply={setApplyJob} />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
+
+        {/* CANDIDATURA ESPONTÁNEA */}
+        <div style={{ marginTop: 80 }}>
+          <CandidaturaEspontanea onOpenForm={() => setIsSpontaneousOpen(true)} />
+        </div>
       </div>
 
+      {/* OVERLAYS */}
       <MobileDrawer job={drawerJob} onClose={() => setDrawerJob(null)} onApply={setApplyJob} />
       {applyJob && <ApplyModal job={applyJob} onClose={() => setApplyJob(null)} />}
+      {isSpontaneousOpen && <SpontaneousApplyModal onClose={() => setIsSpontaneousOpen(false)} />}
     </>
   );
 }

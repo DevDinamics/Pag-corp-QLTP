@@ -85,4 +85,5 @@ body, html {
 
 .grecaptcha-badge {
   bottom: 90px !important; /* Puedes cambiar el 80px si necesitas que suba más o menos */
+  visibility: hidden !important;
 }

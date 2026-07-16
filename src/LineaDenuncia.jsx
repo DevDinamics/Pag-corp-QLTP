@@ -26,7 +26,7 @@ export default function LineaDenuncia() {
             </div>
             <div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
-                Portal de <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Denuncia</span>
+                Linea de <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Denuncia</span>
               </h1>
               <p className="text-xl text-qualtop-orange font-medium mb-2">
                 Te invitamos a compartir todos los detalles relevantes sobre la situación que deseas reportar.
