@@ -1,35 +1,39 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { Canvas } from '@react-three/fiber';
-import { Preload } from '@react-three/drei'; 
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Helmet, HelmetProvider } from 'react-helmet-async'; 
 import { motion } from 'framer-motion';
 
+// --- COMPONENTES GLOBALES PERMANENTES ---
 import Navbar from './Navbar';
-const NeuralNetwork = React.lazy(() => import('./NeuralNetwork'));
+import Footer from './Footer';
+import ScrollToTopButton from './ScrollToTop'; 
+import CookieConsent from './CookieConsent';
+import DownloadModal from './DownloadModal';
+
+// --- VISTAS DEL HOME (Síncronas para First Contentful Paint rápido) ---
 import ServicesSection from './ServicesSection';
 import ProductsSection from './ProductsSection';
 import BenefitsSection from './BenefitsSection';
 import PartnersSection from './PartnersSection';
 import CTASection from './CTASection';
 import ContactSection from './ContactSection';
-import Footer from './Footer';
-import BlogHome from './BlogPrincipal'; 
-import BlogPost from './assets/pages/BlogPost';
-import ContactHome from './ContactHome';
-import ScrollToTopButton from './ScrollToTop'; 
-import CookieConsent from './CookieConsent';
-import DownloadModal from './DownloadModal';
-import AntisobornoSection from './AntisobornoSection';
-import LineaDenuncia from './LineaDenuncia';
-import PoliticaSeguridad from './PoliticaSeguridad';
-import AvisoPrivacidad from './AvisoPrivacidad';
-import PoliticaCalidad from './PoliticaCalidad';
-import FAQSection from './assets/pages/FAQSection';
-import ValuesFlower from './Nosotros/ValuesFlower';
-import CareersHome from './Careers/CareersHome';
-import Nosotros from './Nosotros/Nosotros';
+
+// --- VISTAS / RUTA SECUNDARIAS CON LAZY LOADING ---
+const Nosotros = lazy(() => import('./Nosotros/Nosotros'));
+const BlogHome = lazy(() => import('./BlogPrincipal'));
+const BlogPost = lazy(() => import('./assets/pages/BlogPost'));
+const ContactHome = lazy(() => import('./ContactHome'));
+const PoliticaSeguridad = lazy(() => import('./PoliticaSeguridad'));
+const AntisobornoSection = lazy(() => import('./AntisobornoSection'));
+const LineaDenuncia = lazy(() => import('./LineaDenuncia'));
+const AvisoPrivacidad = lazy(() => import('./AvisoPrivacidad'));
+const PoliticaCalidad = lazy(() => import('./PoliticaCalidad'));
+const FAQSection = lazy(() => import('./assets/pages/FAQSection'));
+const ValuesFlower = lazy(() => import('./Nosotros/ValuesFlower'));
+const CareersHome = lazy(() => import('./Careers/CareersHome'));
+
+// --- 3D CANVAS LAZY LOAD (Para no pesar en el JS inicial) ---
+const ThreeBackground = lazy(() => import('./ThreeBackground'));
 
 // --- UTILIDADES DE SCROLL ---
 const ScrollToTop = () => {
@@ -41,17 +45,14 @@ const ScrollToTop = () => {
 const ScrollToHashElement = () => {
   const { hash, pathname } = useLocation();
   useEffect(() => {
-    const handleScroll = () => {
-      if (hash) {
-        const element = document.getElementById(hash.replace('#', ''));
-        if (element) {
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
-        }
+    if (hash) {
+      const element = document.getElementById(hash.replace('#', ''));
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       }
-    };
-    handleScroll();
+    }
   }, [hash, pathname]);
   return null;
 };
@@ -64,23 +65,11 @@ const Home = () => {
   return (
     <>
       <section className="relative h-screen w-full overflow-hidden bg-[#050505]">
+        {/* Fondo 3D diferido */}
         <div className="absolute inset-0 z-0">
-          <Canvas 
-            camera={{ position: [0, 0, 30], fov: 50 }} 
-            dpr={1} 
-            performance={{ min: 0.5 }}
-            gl={{ antialias: false, powerPreference: "high-performance", stencil: false, depth: true }}
-          >
-            <color attach="background" args={['#050505']} />
-            <fog attach="fog" args={['#050505', 10, 60]} /> 
-            <Suspense fallback={null}>
-              <NeuralNetwork />
-              <EffectComposer disableNormalPass multisampling={0}>
-                <Bloom luminanceThreshold={0.2} mipmapBlur intensity={1.2} radius={0.4} />
-              </EffectComposer>
-            </Suspense>
-            <Preload all />
-          </Canvas>
+          <Suspense fallback={<div className="w-full h-full bg-[#050505]" />}>
+            <ThreeBackground />
+          </Suspense>
         </div>
 
         <div className="relative z-10 flex flex-col justify-center min-h-screen max-w-7xl mx-auto px-6 md:px-12 pointer-events-none transform-gpu">
@@ -176,27 +165,28 @@ export default function App() {
         <ScrollToTop />
         <ScrollToHashElement />
 
-        {/* ✅ Se quitó "relative" del main — era lo que rompía el sticky */}
         <main className="w-full min-h-screen bg-[#050505] font-sans text-white">
           <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/nosotros" element={<Nosotros />} />
-            <Route path="/blog" element={<BlogHome />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/contact-home" element={<ContactHome />} />
-            <Route path="/politica-seguridad" element={<PoliticaSeguridad />} />
-            <Route path="/politicas-antisoborno" element={<AntisobornoSection />} />
-            <Route path="/linea-de-denuncia" element={<LineaDenuncia />} />
-            <Route path="/aviso-privacidad" element={<AvisoPrivacidad />} />
-            <Route path="/politica-calidad" element={<PoliticaCalidad />} />
-            <Route path="/faqs" element={<FAQSection />} />
-            <Route path="/valores" element={<ValuesFlower />} />
-            <Route path="/servicios" element={<ServicesSection />} />
-            <Route path="/productsSection" element={<ProductsSection />} />
-            <Route path="*" element={<Home />} />
-            <Route path="/careers" element={<CareersHome />} />
-          </Routes>
+          <Suspense fallback={<div className="min-h-screen bg-[#050505]" />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/nosotros" element={<Nosotros />} />
+              <Route path="/blog" element={<BlogHome />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/contact-home" element={<ContactHome />} />
+              <Route path="/politica-seguridad" element={<PoliticaSeguridad />} />
+              <Route path="/politicas-antisoborno" element={<AntisobornoSection />} />
+              <Route path="/linea-de-denuncia" element={<LineaDenuncia />} />
+              <Route path="/aviso-privacidad" element={<AvisoPrivacidad />} />
+              <Route path="/politica-calidad" element={<PoliticaCalidad />} />
+              <Route path="/faqs" element={<FAQSection />} />
+              <Route path="/valores" element={<ValuesFlower />} />
+              <Route path="/servicios" element={<ServicesSection />} />
+              <Route path="/productsSection" element={<ProductsSection />} />
+              <Route path="/careers" element={<CareersHome />} />
+              <Route path="*" element={<Home />} />
+            </Routes>
+          </Suspense>
           <CookieConsent />
           <ScrollToTopButton />
           <Footer />

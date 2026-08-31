@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Contentsquare / Hotjar Tracking Tag -->
+    <script async src="https://t.contentsquare.net/uxa/757a5e74406ca.js"></script>
+
+    <!-- 1. SCRIPT DE GTM -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WFH8H6BZ');</script>
+
     <!-- ═══════════════════════════════════════
          BÁSICOS SEO
     ═══════════════════════════════════════ -->
@@ -17,7 +27,6 @@
          FAVICONS
     ═══════════════════════════════════════ -->
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <!-- FIX: ícono nítido al guardar en pantalla de inicio en iOS -->
     <link rel="apple-touch-icon" href="/favicon.png" />
 
     <!-- ═══════════════════════════════════════
@@ -28,7 +37,6 @@
     <meta property="og:url"         content="https://qualtop.com/" />
     <meta property="og:title"       content="Qualtop | Transformación Digital Corporativa" />
     <meta property="og:description" content="Soluciones de desarrollo de software, inteligencia artificial y modernización tecnológica para empresas líderes." />
-    <!-- FIX: imagen actualizada + dimensiones explícitas para WhatsApp -->
     <meta property="og:image"        content="https://qualtop.com/OpenGraph.png" />
     <meta property="og:image:width"  content="1200" />
     <meta property="og:image:height" content="630" />
@@ -60,11 +68,11 @@
             "url": "https://qualtop.com/favicon.png"
           },
           "description": "Soluciones de desarrollo de software a la medida, inteligencia artificial y modernización tecnológica para empresas líderes.",
-         "sameAs": [
-                   "https://www.linkedin.com/company/qualtopgroup/",
-                   "https://www.instagram.com/qualtop_",
-                   "https://www.facebook.com/qualtop"
-                    ]
+          "sameAs": [
+            "https://www.linkedin.com/company/qualtopgroup/",
+            "https://www.instagram.com/qualtop_",
+            "https://www.facebook.com/qualtop"
+          ]
         },
         {
           "@type": "WebSite",
@@ -91,8 +99,6 @@
 
     <!-- ═══════════════════════════════════════
          FUENTES — preconnect + font-display:swap
-         FIX: font-display=swap evita que el texto
-         sea invisible mientras carga Poppins
     ═══════════════════════════════════════ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -102,25 +108,9 @@
     />
 
     <!-- ═══════════════════════════════════════
-         PRELOAD imagen hero
-         FIX: elimina el delay visual en el hero
-         — cambia la ruta si tu imagen tiene otro nombre
-    ═══════════════════════════════════════ -->
-    <link
-      rel="preload"
-      as="image"
-      href="/src/assets/Carrers-image/image-2.carrers.jpg"
-      fetchpriority="high"
-    />
-
-    <!-- ═══════════════════════════════════════
          reCAPTCHA — carga diferida
-         FIX: ya no bloquea el render inicial.
-         Se carga solo cuando el usuario interactúa.
-         Tu clave pública queda igual.
     ═══════════════════════════════════════ -->
     <script>
-      // Carga reCAPTCHA solo cuando el usuario hace scroll o toca la página
       function loadRecaptcha() {
         if (window._recaptchaLoaded) return;
         window._recaptchaLoaded = true;
@@ -136,6 +126,10 @@
 
   </head>
   <body>
+    <!-- 2. NOSCRIPT GTM -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WFH8H6BZ"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

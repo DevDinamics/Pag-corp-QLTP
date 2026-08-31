@@ -5,7 +5,7 @@ import { FileText, Sparkles, QrCode, ArrowRight } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 
 // URL a la que llevará el QR (debe ser la página donde vive este componente)
-const QR_URL = "https://beta.qualtop.com/careers"; 
+const QR_URL = "https://qualtop.com/careers"; 
 
 export default function CandidaturaEspontanea({ onOpenForm }) {
   const [showQR, setShowQR] = useState(false);
@@ -103,7 +103,7 @@ export default function CandidaturaEspontanea({ onOpenForm }) {
     {/* 2. Este componente genera el QR localmente y NO falla */}
     <div className="bg-white p-2 rounded-lg">
       <QRCodeCanvas 
-        value="https://beta.qualtop.com/careers#form" 
+        value="https://qualtop.com/careers#form" 
         size={100}
         level="H" // Nivel de corrección de error alto
       />

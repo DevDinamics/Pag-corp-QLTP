@@ -120,17 +120,61 @@ export default function AntisobornoSection() {
     {
       title: "Compromisos",
       content: (
-        <>
-          <p>Es responsabilidad del personal y socios de negocio cumplir los requisitos del Sistema de Gestión Antisoborno.</p>
-          <ul className="list-disc pl-5 space-y-2 marker:text-qualtop-orange">
-            <li>Apegarnos a las leyes aplicables a nuestra organización identificadas en la Tabla de Requisitos Legales.</li>
-            <li>Realizar todas las negociaciones, compras y transacciones financieras con apego a nuestros procesos internos y conservando todos los registros de las mismas para ser revisados en caso de auditoria.</li>
-            <li>Asegurarnos de que los pagos que realicemos o que se realicen por nuestra cuenta sean exclusivamente una remuneración por servicios efectivamente prestados a nuestra compañía o en nombre de ella.</li>
-            <li>Adoptar los controles internos y denunciar, si es necesario ante las autoridades correspondientes aquellos casos en los que algún empleado, o socio de negocio incurra en un acto de corrupción.</li>
-            <li>Promover las mejores prácticas para prevenir y luchar contra el soborno y la corrupción a lo largo de nuestra cadena de valor, capacitar al personal sobre las medidas preventivas y realizar campañas de difusión.</li>
-            <li>Fortalecer la eficacia del sistema de gestión compartiendo sugerencias que nos lleven a la mejora continua del mismo.</li>
+        <div className="space-y-4">
+          <ul className="list-disc pl-5 space-y-2 text-white/80">
+            <li>
+              Es responsabilidad del personal y socios de negocio cumplir los requisitos del Sistema de Gestión Antisoborno.
+            </li>
+            <li>
+              Apegarnos a las leyes aplicables a nuestra organización identificadas en la{' '}
+              <a 
+                href="https://id.atlassian.com/login?continue=https%3A%2F%2Fid.atlassian.com%2Fjoin%2Fuser-access%3Fresource%3Dari%253Acloud%253Aconfluence%253A%253Asite%252Fd227f807-7c05-4503-9327-f19b4443a9bf%26continue%3Dhttps%253A%252F%252Fqualtopgroup.atlassian.net%252Fwiki%252Fspaces%252FQGADM%252Fpages%252F884572291%252FTabla%252Bde%252BRequisitos%252BLegales&application=confluence&orgId=5e8ebd31-64bf-4df2-a389-c3ba3bd74a4a" 
+                target="_blank" 
+                rel="noreferrer" 
+                className={linkClass}
+              >
+                Tabla de Requisitos Legales
+              </a>.
+            </li>
+            <li>
+              Realizar todas las negociaciones, compras y transacciones financieras con apego a nuestros procesos internos y conservando todos los registros de las mismas para ser revisados en caso de auditoría.
+            </li>
+            <li>
+              Asegurarnos de que los pagos que realicemos o que se realicen por nuestra cuenta sean exclusivamente una remuneración por servicios efectivamente prestados a nuestra compañía o en nombre de ella.
+            </li>
+            <li>
+              Adoptar los controles internos y denunciar, si es necesario ante las autoridades correspondientes, aquellos casos en los que algún empleado o socio de negocio incurra en un acto de corrupción.
+            </li>
+            <li>
+              Promover las mejores prácticas para prevenir y luchar contra el soborno y la corrupción a lo largo de nuestra cadena de valor, capacitar al personal sobre las medidas preventivas y realizar campañas de difusión.
+            </li>
+            <li>
+              Fortalecer la eficacia del sistema de gestión compartiendo sugerencias que nos lleven a la mejora continua del mismo.
+            </li>
+            <li>
+              La organización define como &apos;Puestos Clave&apos; a aquellos roles con alta exposición a riesgos de corrupción, gestión financiera o relación con terceros interesados, con toma de decisión que puede influir en decisiones que podrían ser vulnerables a prácticas de soborno. Para estos perfiles identificados en la{' '}
+              <a 
+                href="https://qualtopgroup.atlassian.net/wiki/spaces/BDPYAS/pages/5967414001/Pol+tica+de+Control+de+Expedientes" 
+                target="_blank" 
+                rel="noreferrer" 
+                className={linkClass}
+              >
+                Política de Control de Expedientes
+              </a>, la Debida Diligencia es obligatoria y reinforced, consistiendo en la realización de un Estudio Socioeconómico y verificaciones de antecedentes{' '}
+              <a 
+                href="https://qualtopgroup.atlassian.net/wiki/spaces/BDPYAS/pages/5967414231/Reclutamiento+y+Selecci+n" 
+                target="_blank" 
+                rel="noreferrer" 
+                className={linkClass}
+              >
+                (ver Proceso de Reclutamiento y Selección)
+              </a>.
+            </li>
+            <li>
+              La Declaración de Cumplimiento Antisoborno es un requisito obligatorio para la totalidad de los colaboradores de la organización sin excepción. Deberá presentarse en el momento de la contratación, al menos una vez al año y, en caso de cambio de puesto, deberá renovarse.
+            </li>
           </ul>
-        </>
+        </div>
       )
     },
     {
@@ -250,7 +294,7 @@ export default function AntisobornoSection() {
         </>
       )
     },
-    {
+/*     {
       title: "Puestos Clave",
       content: (
         <>
@@ -315,7 +359,7 @@ export default function AntisobornoSection() {
           </div>
         </>
       )
-    },
+    }, */
     {
       title: "Formación",
       content: (

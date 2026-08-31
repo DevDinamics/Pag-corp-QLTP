@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/', 
   build: {
-    target: 'es2015' // <-- ¡Esta es la magia para que el robot lo entienda!
+    target: 'es2015',
+    chunkSizeWarningLimit: 1600,
   }
 })

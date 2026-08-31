@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'; // animate: snap-back del drawer
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'; 
 import {
   MapPin, Briefcase, ChevronRight, Send, Search, Sparkles,
   X, Upload, User, Mail, MessageCircle, Smartphone,
@@ -29,6 +29,22 @@ const OPCIONES_AREA = [
   "Blockchain",
   "SAP",
   "IoT",
+  "Otro"
+];
+
+// NUEVA LISTA DE OPCIONES
+const OPCIONES_ENTERASTE = [
+  "Recomendación de un conocido",
+  "Buscadores",
+  "Sitio web de Qualtop",
+  "AMITI",
+  "LinkedIn",
+  "Facebook",
+  "Instagram",
+  "Evento o conferencia",
+  "Sesión virtual",
+  "Correo electrónico",
+  "Medio de comunicación",
   "Otro"
 ];
 
@@ -227,9 +243,6 @@ const SuccessScreen = ({ title, body, onClose }) => (
   </motion.div>
 );
 
-// ── SCROLL LOCK — funciona en iOS Safari ─────────────────────────────────────
-// Safari ignora overflow:hidden en body. La solución real es fijar el body
-// en su posición actual con position:fixed y restaurar el scroll al cerrar.
 const useScrollLock = (active) => {
   useEffect(() => {
     if (!active) return;
@@ -258,20 +271,17 @@ const useScrollLock = (active) => {
   }, [active]);
 };
 
-// ── MODAL BASE — mismo patrón estable que MobileDrawer ───────────────────────
+// ── MODAL BASE ───────────────────────────────────────────────────────────────
 const Modal = ({ children, onClose }) => {
   const [visible, setVisible] = useState(false);
   const closingRef = useRef(false);
 
-  // Scroll lock iOS-safe
   useScrollLock(true);
 
-  // Abrir con un tick de delay para que el DOM pinte primero
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
-  // Escape key
   useEffect(() => {
     const onKey = e => { if (e.key === 'Escape') triggerClose(); };
     window.addEventListener('keydown', onKey);
@@ -287,9 +297,7 @@ const Modal = ({ children, onClose }) => {
     }, 340);
   };
 
-  // Drag-to-dismiss igual que el drawer
   const y = useMotionValue(0);
-  const overlayOpacity = useTransform(y, [0, 400], [1, 0]);
   const scrollRef = useRef(null);
 
   const handleDragEnd = (_, info) => {
@@ -320,7 +328,6 @@ const Modal = ({ children, onClose }) => {
         .modal-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
       `}</style>
 
-      {/* Overlay */}
       <motion.div
         initial={false}
         animate={{ opacity: visible ? 1 : 0 }}
@@ -334,7 +341,6 @@ const Modal = ({ children, onClose }) => {
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         }}
       >
-        {/* Wrapper que centra en desktop */}
         <div
           className="modal-wrap"
           style={{
@@ -343,7 +349,6 @@ const Modal = ({ children, onClose }) => {
           }}
           onClick={e => e.stopPropagation()}
         >
-          {/* Sheet */}
           <motion.div
             className="modal-sheet"
             style={{
@@ -369,14 +374,11 @@ const Modal = ({ children, onClose }) => {
               if (scrollRef.current?.scrollTop > 0) e.stopPropagation();
             }}
           >
-            {/* Línea accent top */}
             <div style={{
               position: 'absolute', top: 0, left: 0, right: 0, height: 2,
               background: `linear-gradient(90deg, transparent, ${BRAND.accent}, transparent)`,
               pointerEvents: 'none',
             }} />
-
-            {/* Handle drag */}
             <div style={{
               paddingTop: 14, paddingBottom: 6,
               display: 'flex', justifyContent: 'center',
@@ -384,8 +386,6 @@ const Modal = ({ children, onClose }) => {
             }}>
               <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)' }} />
             </div>
-
-            {/* Botón X */}
             <button
               onClick={triggerClose}
               aria-label="Cerrar"
@@ -399,8 +399,6 @@ const Modal = ({ children, onClose }) => {
             >
               <X size={14} color="rgba(255,255,255,0.55)" />
             </button>
-
-            {/* Contenido scrollable */}
             <div ref={scrollRef} className="modal-scroll">
               {children}
             </div>
@@ -420,6 +418,7 @@ const SpontaneousApplyModal = ({ onClose }) => {
   const [formData, setFormData] = useState({
     nombre: '', email: '', telefono: '', codigoPais: '+52',
     metodoContacto: 'whatsapp', areaInteres: OPCIONES_AREA[0], cvFile: null,
+    comoTeEnteraste: OPCIONES_ENTERASTE[0], comoTeEnterasteOtro: '',
   });
 
   const handleChange = e => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
@@ -444,14 +443,17 @@ const SpontaneousApplyModal = ({ onClose }) => {
         reader.onerror = error => reject(error);
       });
       const cvBase64Content = await fileToBase64(formData.cvFile);
+      
       const payload = {
         nombre: formData.nombre, email: formData.email,
         telefono: `${formData.codigoPais} ${formData.telefono}`,
         area: "Postulación abierta",
         puesto: "Interés en: " + formData.areaInteres,
         cvBase64: cvBase64Content, cvMimeType: formData.cvFile.type,
+        comoTeEnteraste: formData.comoTeEnteraste === 'Otro' ? `Otro: ${formData.comoTeEnterasteOtro}` : formData.comoTeEnteraste,
         recaptchaToken: token,
       };
+      
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -514,6 +516,39 @@ const SpontaneousApplyModal = ({ onClose }) => {
                 <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
               </div>
             </div>
+
+            {/* NUEVO CAMPO */}
+            <div>
+              <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 8, display: 'block' }}>
+                ¿Cómo te enteraste de nosotros?
+              </label>
+              <div style={{ position: 'relative' }}>
+                <select
+                  name="comoTeEnteraste" value={formData.comoTeEnteraste} onChange={handleChange}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                    borderRadius: 12, padding: '12px 36px 12px 14px',
+                    color: '#fff', fontSize: 13, outline: 'none', appearance: 'none', cursor: 'pointer',
+                  }}
+                >
+                  {OPCIONES_ENTERASTE.map(o => (
+                    <option key={o} value={o} style={{ color: '#000' }}>{o}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {formData.comoTeEnteraste === 'Otro' && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+                  <Field type="text" name="comoTeEnterasteOtro" value={formData.comoTeEnterasteOtro} onChange={handleChange} placeholder="Si seleccionaste 'Otro', por favor especifícalo" required />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <CVUploader file={formData.cvFile} onChange={handleFile} id="cv-spont" />
           </div>
           <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey="6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H" />
@@ -554,7 +589,7 @@ const SpontaneousApplyModal = ({ onClose }) => {
   );
 };
 
-// ── APPLY MODAL ──────────────────────────────────────────────────────────────
+// ── APPLY MODAL (AHORA CON 3 PASOS) ──────────────────────────────────────────
 const ApplyModal = ({ job, onClose }) => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -565,6 +600,7 @@ const ApplyModal = ({ job, onClose }) => {
     metodoContacto: 'whatsapp',
     certificado: 'no', certAno: '', certVigente: 'si',
     cvFile: null, certFile: null,
+    comoTeEnteraste: OPCIONES_ENTERASTE[0], comoTeEnterasteOtro: '',
   });
 
   if (!job) return null;
@@ -572,13 +608,19 @@ const ApplyModal = ({ job, onClose }) => {
   const handleFile = e => e.target.files?.[0] && setFormData(p => ({ ...p, cvFile: e.target.files[0] }));
   const handleCertFile = e => e.target.files?.[0] && setFormData(p => ({ ...p, certFile: e.target.files[0] }));
 
-  const handleSubmit = async (e) => {
+  // Validación para pasar del Paso 2 al Paso 3
+  const handleNextToStep3 = (e) => {
     e.preventDefault();
     if (!formData.cvFile) return alert("Por favor adjunta tu CV.");
     if (formData.certificado === 'si') {
       if (!formData.certAno.trim()) return alert("Por favor ingresa el año de tu certificación.");
       if (!formData.certFile) return alert("Por favor adjunta el documento de tu certificación.");
     }
+    setStep(3);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setIsSubmitting(true);
     try {
       const token = await recaptchaRef.current.executeAsync();
@@ -595,6 +637,7 @@ const ApplyModal = ({ job, onClose }) => {
         certBase64Content = await fileToBase64(formData.certFile);
         certMimeType = formData.certFile.type;
       }
+      
       const payload = {
         nombre: formData.nombre, email: formData.email,
         telefono: `${formData.codigoPais} ${formData.telefono}`,
@@ -603,8 +646,10 @@ const ApplyModal = ({ job, onClose }) => {
         certBase64: certBase64Content, certMimeType,
         certAno: formData.certificado === 'si' ? formData.certAno : 'N/A',
         certVigente: formData.certificado === 'si' ? formData.certVigente : 'N/A',
+        comoTeEnteraste: formData.comoTeEnteraste === 'Otro' ? `Otro: ${formData.comoTeEnterasteOtro}` : formData.comoTeEnteraste,
         recaptchaToken: token,
       };
+
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -613,7 +658,7 @@ const ApplyModal = ({ job, onClose }) => {
       const result = await response.json();
       if (result.status === "error") throw new Error(result.mensaje);
       setIsSubmitting(false);
-      setStep(3);
+      setStep(4);
     } catch (error) {
       console.error(error);
       alert("Hubo un error al enviar la postulación. Intenta de nuevo.");
@@ -624,9 +669,9 @@ const ApplyModal = ({ job, onClose }) => {
   return (
     <Modal onClose={onClose}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <ProgressDots total={2} current={step === 3 ? 2 : step} />
+        <ProgressDots total={3} current={step === 4 ? 3 : step} />
         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em' }}>
-          {step < 3 ? `PASO ${step} DE 2` : ''}
+          {step < 4 ? `PASO ${step} DE 3` : ''}
         </span>
       </div>
 
@@ -675,7 +720,7 @@ const ApplyModal = ({ job, onClose }) => {
         )}
 
         {step === 2 && (
-          <motion.form key="s2" onSubmit={handleSubmit} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}>
+          <motion.form key="s2" onSubmit={handleNextToStep3} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Completa tu perfil</h3>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>
               Aplicando a: <span style={{ color: 'rgba(255,255,255,0.7)' }}>{job.puesto}</span>
@@ -790,14 +835,80 @@ const ApplyModal = ({ job, onClose }) => {
               </div>
               <CVUploader file={formData.cvFile} onChange={handleFile} />
             </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="button" onClick={() => setStep(1)} style={{
+                padding: '13px 18px', borderRadius: 14,
+                border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
+                color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              }}>Atrás</button>
+              <button
+                type="submit"
+                style={{
+                  flex: 1, padding: '13px', borderRadius: 14,
+                  border: 'none', background: BRAND.accent,
+                  color: '#fff', fontSize: 14, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  boxShadow: `0 6px 20px ${BRAND.accentSoft}`,
+                  transition: 'background .2s', WebkitTapHighlightColor: 'transparent', cursor: 'pointer'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = BRAND.accentMid}
+                onMouseLeave={e => e.currentTarget.style.background = BRAND.accent}
+              >
+                Continuar <ChevronRight size={15} />
+              </button>
+            </div>
+          </motion.form>
+        )}
+
+        {/* NUEVO PASO 3 */}
+        {step === 3 && (
+          <motion.form key="s3" onSubmit={handleSubmit} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Un último detalle</h3>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>
+              Ayúdanos a saber cómo llegaste aquí.
+            </p>
+
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 8, display: 'block' }}>
+                ¿Cómo te enteraste de nosotros?
+              </label>
+              <div style={{ position: 'relative', marginBottom: 12 }}>
+                <select
+                  name="comoTeEnteraste" value={formData.comoTeEnteraste} onChange={handleChange}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                    borderRadius: 12, padding: '12px 36px 12px 14px',
+                    color: '#fff', fontSize: 13, outline: 'none', appearance: 'none', cursor: 'pointer',
+                  }}
+                >
+                  {OPCIONES_ENTERASTE.map(o => (
+                    <option key={o} value={o} style={{ color: '#000' }}>{o}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+              </div>
+
+              <AnimatePresence>
+                {formData.comoTeEnteraste === 'Otro' && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+                    <Field type="text" name="comoTeEnterasteOtro" value={formData.comoTeEnterasteOtro} onChange={handleChange} placeholder="Si seleccionaste 'Otro', por favor especifícalo" required />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey="6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H" />
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 16, textAlign: 'center', lineHeight: 1.4 }}>
               Este sitio está protegido por reCAPTCHA y se aplican la{' '}
               <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'underline' }}>Política de Privacidad</a> y los{' '}
               <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'underline' }}>Términos de Servicio</a> de Google.
             </div>
+
             <div style={{ display: 'flex', gap: 10 }}>
-              <button type="button" onClick={() => setStep(1)} style={{
+              <button type="button" onClick={() => setStep(2)} style={{
                 padding: '13px 18px', borderRadius: 14,
                 border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
                 color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer',
@@ -826,8 +937,9 @@ const ApplyModal = ({ job, onClose }) => {
           </motion.form>
         )}
 
-        {step === 3 && (
-          <motion.div key="s3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+        {/* PASO 4 (ÉXITO) */}
+        {step === 4 && (
+          <motion.div key="s4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
             <SuccessScreen
               title="¡Postulación enviada!"
               body={`Recibimos tu info para ${job.puesto}. Nuestro equipo te contactará pronto.`}
@@ -841,8 +953,6 @@ const ApplyModal = ({ job, onClose }) => {
 };
 
 // ── MOBILE DRAWER — Apple-style, sin flicker ────────────────────────────────
-// Patrón: el componente siempre está montado cuando job != null.
-// Manejamos "visible" internamente para poder esperar el exit antes de llamar onClose.
 const MobileDrawer = ({ job, onClose, onApply }) => {
   const [currentJob, setCurrentJob] = useState(job);
   const [visible, setVisible] = useState(false);
@@ -850,29 +960,25 @@ const MobileDrawer = ({ job, onClose, onApply }) => {
   const y = useMotionValue(0);
   const overlayOpacity = useTransform(y, [0, 600], [1, 0]);
   const scrollRef = useRef(null);
-  const closingRef = useRef(false); // evita doble-trigger
+  const closingRef = useRef(false);
 
-  // Cuando llega un job nuevo → guardarlo y abrir
   useEffect(() => {
     if (job) {
       closingRef.current = false;
       setCurrentJob(job);
       y.set(0);
-      // pequeño tick para que el DOM pinte antes de animar
       requestAnimationFrame(() => setVisible(true));
     } else {
       triggerClose();
     }
   }, [job]);
 
-  // Scroll lock iOS-safe
   useScrollLock(visible);
 
   const triggerClose = () => {
     if (closingRef.current) return;
     closingRef.current = true;
     setVisible(false);
-    // Esperar que termine la animación de salida (~380ms) antes de notificar al padre
     setTimeout(() => {
       onClose();
       closingRef.current = false;
@@ -894,12 +1000,10 @@ const MobileDrawer = ({ job, onClose, onApply }) => {
       style={{
         position: 'fixed', inset: 0, zIndex: 900,
         display: 'flex', alignItems: 'flex-end',
-        // Ocultar contenedor cuando no es visible para no bloquear clicks
         pointerEvents: visible ? 'auto' : 'none',
       }}
       className="lg-hidden"
     >
-      {/* Overlay */}
       <motion.div
         initial={false}
         animate={{ opacity: visible ? 1 : 0 }}
@@ -913,7 +1017,6 @@ const MobileDrawer = ({ job, onClose, onApply }) => {
         onClick={triggerClose}
       />
 
-      {/* Drawer */}
       <motion.div
         initial={false}
         animate={{ y: visible ? 0 : '100%' }}
@@ -936,7 +1039,6 @@ const MobileDrawer = ({ job, onClose, onApply }) => {
         onDragEnd={handleDragEnd}
         onClick={e => e.stopPropagation()}
       >
-        {/* Handle */}
         <div style={{
           paddingTop: 14, paddingBottom: 8,
           display: 'flex', justifyContent: 'center',
@@ -945,7 +1047,6 @@ const MobileDrawer = ({ job, onClose, onApply }) => {
           <div style={{ width: 40, height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.2)' }} />
         </div>
 
-        {/* Botón X */}
         <button
           onClick={triggerClose}
           style={{
@@ -959,7 +1060,6 @@ const MobileDrawer = ({ job, onClose, onApply }) => {
           <X size={14} color="rgba(255,255,255,0.55)" />
         </button>
 
-        {/* Contenido scrollable */}
         <div
           ref={scrollRef}
           style={{
@@ -974,7 +1074,6 @@ const MobileDrawer = ({ job, onClose, onApply }) => {
             if (scrollRef.current?.scrollTop > 0) e.stopPropagation();
           }}
         >
-          {/* Badges */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
             <span style={{
               background: BRAND.accentSoft, border: `1px solid ${BRAND.accentBorder}`,
@@ -1081,8 +1180,6 @@ const ApplyButton = ({ job, onApply }) => {
 // ── JOB CARD ─────────────────────────────────────────────────────────────────
 const JobCard = ({ job, isSelected, onClick }) => {
   const [hovered, setHovered] = useState(false);
-  
-  // Determinamos cómo mostrar el área de forma segura
   const areasDisplay = Array.isArray(job.area) ? job.area.join(', ') : job.area;
 
   return (
@@ -1166,7 +1263,6 @@ useEffect(() => {
         setVacantes(data);
         if (data.length > 0) setSelectedJob(data[0]);
 
-        // Usamos flatMap para aplanar el arreglo de áreas de cada vacante y obtener una lista única
         const areasUnicas = ['Todas', ...new Set(data.flatMap(job => job.area || []))];
         setAreasDinamicas(areasUnicas);
         
@@ -1219,7 +1315,6 @@ useEffect(() => {
       `}</style>
 
       <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto' }}>
-        {/* HEADER */}
         <div style={{ marginBottom: 40 }}>
           <motion.span
             initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -1236,7 +1331,6 @@ useEffect(() => {
           </motion.h2>
         </div>
 
-        {/* FILTERS */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
           <div style={{ position: 'relative', maxWidth: 380 }}>
             <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.25)' }} />
@@ -1273,9 +1367,7 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* MASTER–DETAIL */}
         <div className="vacantes-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-          {/* LIST */}
           <div className="job-list" style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 820, overflowY: 'auto', paddingRight: 4 }}>
             {filtered.length === 0 && (
               <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 14, textAlign: 'center', padding: '40px 0' }}>
@@ -1295,7 +1387,6 @@ useEffect(() => {
             ))}
           </div>
 
-          {/* DETAIL — desktop only */}
           <div className="lg-grid" style={{ position: 'sticky', top: 100 }}>
             <AnimatePresence mode="wait">
               {selectedJob && (
@@ -1380,13 +1471,11 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* CANDIDATURA ESPONTÁNEA */}
         <div style={{ marginTop: 80 }}>
           <CandidaturaEspontanea onOpenForm={() => setIsSpontaneousOpen(true)} />
         </div>
       </div>
 
-      {/* OVERLAYS */}
       <MobileDrawer job={drawerJob} onClose={() => setDrawerJob(null)} onApply={setApplyJob} />
       {applyJob && <ApplyModal job={applyJob} onClose={() => setApplyJob(null)} />}
       {isSpontaneousOpen && <SpontaneousApplyModal onClose={() => setIsSpontaneousOpen(false)} />}

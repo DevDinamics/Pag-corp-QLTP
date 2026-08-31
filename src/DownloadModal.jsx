@@ -2,24 +2,48 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, Check, Mail, Loader2, AlertCircle } from 'lucide-react';
 
+// Lista de proveedores gratuitos comunes
+const FREE_EMAIL_DOMAINS = [
+  'gmail.com', 'googlemail.com',
+  'hotmail.com', 'outlook.com', 'live.com', 'msn.com',
+  'yahoo.com', 'yahoo.es', 'yahoo.com.mx', 'ymail.com',
+  'icloud.com', 'me.com', 'mac.com',
+  'aol.com', 'protonmail.com', 'proton.me', 'zoho.com'
+];
+
+const isCorporateEmail = (email) => {
+  if (!email || !email.includes('@')) return false;
+  const domain = email.split('@')[1].toLowerCase().trim();
+  return !FREE_EMAIL_DOMAINS.includes(domain);
+};
+
 export default function DownloadModal({ isOpen, onClose }) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
 
+    // Validación de correo corporativo en el frontend
+    if (!isCorporateEmail(email)) {
+      setErrorMessage('Por favor, ingresa un correo electrónico de tu empresa (no se admiten cuentas personales como Gmail o Hotmail).');
+      setStatus('error');
+      return;
+    }
+
+    setErrorMessage('');
     setStatus('loading');
 
     try {
-      // Usamos fetch mandando un JSON, igual que en tu otro formulario
-      const response = await fetch('https://beta.qualtop.com/enviar_manual.php', {
+      // Usar ruta relativa para que funcione automáticamente en beta y producción
+      const response = await fetch('/enviar_manual.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: email }),
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
 
       const result = await response.json();
@@ -30,13 +54,21 @@ export default function DownloadModal({ isOpen, onClose }) {
           onClose();
           setStatus('idle');
           setEmail('');
+          setErrorMessage('');
         }, 4000);
       } else {
+        setErrorMessage(result.message || 'No pudimos procesar tu solicitud.');
         setStatus('error');
       }
     } catch (error) {
+      setErrorMessage('Ocurrió un error de conexión.');
       setStatus('error');
     }
+  };
+
+  const handleReset = () => {
+    setStatus('idle');
+    setErrorMessage('');
   };
 
   return (
@@ -79,14 +111,14 @@ export default function DownloadModal({ isOpen, onClose }) {
                     </div>
                   ) : status === 'error' ? (
                      <div className="text-center py-4">
-                      <h3 className="text-2xl font-bold text-white mb-2">Ups, algo falló</h3>
-                      <p className="text-gray-400 text-sm mb-4">No pudimos procesar tu solicitud.</p>
-                      <button onClick={() => setStatus('idle')} className="text-qualtop-orange hover:underline text-sm">Intentar de nuevo</button>
+                      <h3 className="text-2xl font-bold text-white mb-2">Se requiere correo corporativo</h3>
+                      <p className="text-gray-400 text-sm mb-4 leading-relaxed">{errorMessage || 'No pudimos procesar tu solicitud.'}</p>
+                      <button onClick={handleReset} className="text-qualtop-orange hover:underline text-sm font-medium">Intentar de nuevo</button>
                     </div>
                   ) : (
                     <>
                       <h3 className="text-2xl font-bold text-white mb-2">Caso de Éxito: Banca 2026</h3>
-                      <p className="text-gray-400 text-sm mb-6 leading-relaxed">Te enviaremos el PDF completo directamente a tu correo electrónico.</p>
+                      <p className="text-gray-400 text-sm mb-6 leading-relaxed">Te enviaremos el PDF completo directamente a tu correo corporativo.</p>
                       <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="relative group">
                           <Mail className="absolute left-3 top-3.5 text-gray-500 group-focus-within:text-qualtop-orange transition-colors" size={18} />

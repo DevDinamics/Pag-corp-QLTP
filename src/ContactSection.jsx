@@ -2,6 +2,25 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle2, Mail, Phone, Loader2, AlertCircle } from 'lucide-react';
 
+// Lista de dominios personales y temporales bloqueados: //
+const FREE_EMAIL_DOMAINS = [
+  // Proveedores gratuitos personales //
+  'gmail.com', 'googlemail.com',
+  'hotmail.com', 'outlook.com', 'live.com', 'msn.com',
+  'yahoo.com', 'yahoo.es', 'yahoo.com.mx', 'ymail.com',
+  'icloud.com', 'me.com', 'mac.com',
+  'aol.com', 'protonmail.com', 'proton.me', 'zoho.com',
+  // Proveedores de correos temporales //
+  'tempmail.com', 'temp-mail.org', '10minutemail.com', 'guerrillamail.com',
+  'mailinator.com', 'throwawaymail.com', 'yopmail.com', 'sharklasers.com',
+  'dispostable.com', 'trashmail.com', 'getairmail.com', 'mohmal.com'
+];
+
+const isCorporateEmail = (email) => {
+  if (!email || !email.includes('@')) return false;
+  const domain = email.split('@')[1].toLowerCase().trim();
+  return !FREE_EMAIL_DOMAINS.includes(domain);
+};
 
 const InputGroup = ({ label, name, type = "text", placeholder, required = false, isTextArea = false }) => {
   return (
@@ -32,7 +51,6 @@ const InputGroup = ({ label, name, type = "text", placeholder, required = false,
   );
 };
 
-
 const SelectGroup = ({ label, name, options, required = false }) => (
   <div className="group relative">
     <select 
@@ -56,34 +74,45 @@ const SelectGroup = ({ label, name, options, required = false }) => (
 export default function ContactSection() {
   const form = useRef();
   const [formState, setFormState] = useState('idle');
+  const [customError, setCustomError] = useState('');
 
-  // --- FUNCIÓN ACTUALIZADA CON RECAPTCHA V3 ---
   const sendEmail = async (e) => {
     e.preventDefault();
-    setFormState('loading');
 
     // Extraemos los datos del formulario
     const formData = new FormData(form.current);
     const data = Object.fromEntries(formData.entries());
 
-    // Validación de seguridad para el script de Google
-    if (!window.grecaptcha) {
-      console.error('El script de reCAPTCHA no se ha cargado.');
+    // ── 1. VALIDACIÓN DE CORREO CORPORATIVO (FRONTEND) ──
+    if (!isCorporateEmail(data.user_email)) {
+      setCustomError('Por favor ingresa un correo corporativo de tu empresa (no cuentas personales como Gmail, Hotmail u Outlook).');
       setFormState('error');
-      alert('Error de seguridad. Por favor recarga la página e intenta de nuevo.');
+      setTimeout(() => {
+        setFormState('idle');
+        setCustomError('');
+      }, 5000);
       return;
     }
 
-    // 1. Llamamos a Google para generar el Token
+    setFormState('loading');
+    setCustomError('');
+
+    // Validación de script de reCAPTCHA
+    if (!window.grecaptcha) {
+      setFormState('error');
+      setCustomError('Error de seguridad. Recarga la página e intenta de nuevo.');
+      setTimeout(() => setFormState('idle'), 4000);
+      return;
+    }
+
+    // 2. Generamos el Token de reCAPTCHA v3
     window.grecaptcha.ready(function() {
-      window.grecaptcha.execute('6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H', {action: 'submit'}).then(async function(token) {
-        
-        // 2. Le agregamos el token al objeto data
+      window.grecaptcha.execute('6LeXCr0sAAAAAAIxiMH34WPnYqV46m_7X7p-R78H', { action: 'submit' }).then(async function(token) {
         data.recaptcha_token = token;
 
-        // 3. Enviamos a tu backend PHP
+        // 3. Enviamos a PHP con ruta relativa automática
         try {
-          const response = await fetch('https://qualtop.com/enviar_correo.php', {
+          const response = await fetch('/enviar_correo.php', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -93,21 +122,26 @@ export default function ContactSection() {
 
           const result = await response.json();
 
-          if (result.status === 'success') {
-            console.log('¡Email enviado con éxito por cPanel!');
+          if (response.ok && result.status === 'success') {
             setFormState('success');
-            e.target.reset();
+            if (form.current) form.current.reset();
             setTimeout(() => setFormState('idle'), 5000);
           } else {
-            console.error('Error del servidor:', result.message);
+            setCustomError(result.message || 'Error del servidor al procesar tu solicitud.');
             setFormState('error');
-            setTimeout(() => setFormState('idle'), 4000);
+            setTimeout(() => {
+              setFormState('idle');
+              setCustomError('');
+            }, 5000);
           }
 
         } catch (error) {
-          console.error('Error de red o conexión:', error);
+          setCustomError('Error de conexión. Intenta nuevamente.');
           setFormState('error');
-          setTimeout(() => setFormState('idle'), 4000);
+          setTimeout(() => {
+            setFormState('idle');
+            setCustomError('');
+          }, 4000);
         }
 
       });
@@ -117,13 +151,11 @@ export default function ContactSection() {
   return (
     <section id="contacto" className="relative w-full bg-[#050505] py-16 md:py-24 px-4 md:px-6 overflow-hidden border-t border-white/5 scroll-mt-20">
       
-
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-qualtop-orange/20 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-40 translate-x-1/3 translate-y-1/3"></div>
       <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen opacity-30"></div>
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start relative z-10">
-        
         
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
@@ -145,7 +177,7 @@ export default function ContactSection() {
           </p>
 
           <div className="space-y-6 border-t border-white/10 pt-8">
-            <a href="mailto:hola@qualtop.com" className="flex items-center gap-4 group w-fit">
+            <a href="mailto:info@qualtop.com" className="flex items-center gap-4 group w-fit">
                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-qualtop-orange group-hover:text-white text-gray-400 transition-all duration-300 border border-white/5">
                  <Mail size={20} />
                </div>
@@ -154,12 +186,9 @@ export default function ContactSection() {
                  <p className="text-white text-base font-medium group-hover:text-qualtop-orange transition-colors">info@qualtop.com</p>
                </div>
             </a>
-            
-            
           </div>
         </motion.div>
 
-        
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -176,7 +205,7 @@ export default function ContactSection() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <InputGroup name="user_name" label="Nombre completo" required />
-                  <InputGroup name="user_email" label="Correo electrónico corporativo" type="email" required />
+                  <InputGroup name="user_email" label="Correo corporativo" type="email" required />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -191,6 +220,14 @@ export default function ContactSection() {
                 
                 <InputGroup name="message" label="¿Cómo podemos ayudarte?" isTextArea required />
 
+                {/* Mensaje de error visible si la validación falla */}
+                {customError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400 text-xs leading-relaxed">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{customError}</span>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-start gap-3">
                     <div className="relative flex items-center mt-1">
@@ -201,7 +238,6 @@ export default function ContactSection() {
                       He leído y acepto el <a href="./aviso-privacidad" className="text-gray-400 hover:text-qualtop-orange underline transition-colors">Aviso de Privacidad</a>.
                     </label>
                   </div>
-                  {/* Texto legal de reCAPTCHA obligatorio si ocultas el badge */}
                   <span className="text-[10px] text-gray-600 pl-7">Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" className="underline hover:text-gray-400" target="_blank" rel="noreferrer">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" className="underline hover:text-gray-400" target="_blank" rel="noreferrer">Términos de Servicio</a> de Google.</span>
                 </div>
 
@@ -235,7 +271,7 @@ export default function ContactSection() {
                   {formState === 'error' && (
                     <>
                       <AlertCircle size={18} />
-                      <span>Error - Intenta de nuevo</span>
+                      <span>Verifica tus datos</span>
                     </>
                   )}
                 </button>

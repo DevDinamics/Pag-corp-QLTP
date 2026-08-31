@@ -93,6 +93,9 @@ export default function Footer() {
             </div>
           </div>
 
+
+          
+
           {/* COLUMNA CONTACTO (3/12) */}
           <div className="md:col-span-3">
             <h4 className="text-qualtop-orange font-bold text-lg mb-6">Contacto</h4>
@@ -107,6 +110,14 @@ export default function Footer() {
                       <a href="https://www.linkedin.com/company/qualtopgroup/" aria-label="Visitar nuestro LinkedIn" className="text-white hover:text-qualtop-orange transition-all"><Linkedin size={20} /></a>
                       <a href="https://www.youtube.com/@qualtop_" aria-label="Visitar nuestro YouTube" className="text-white hover:text-qualtop-orange transition-all"><Youtube size={20} /></a>
                 </div>
+            </div>
+
+            {/* SECCIÓN ATENCIÓN LABORAL (Alineada al nivel de Compliance) */}
+            <div className="mt-12">
+                <h4 className="text-qualtop-orange font-bold text-lg mb-2">Atención Laboral</h4>
+                <a href="mailto:atencionthdo@qualtop.com" className="text-white hover:text-qualtop-orange transition-colors text-sm block font-semibold">
+                    atencionthdo@qualtop.com
+                </a>
             </div>
           </div>
 

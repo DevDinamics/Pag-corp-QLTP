@@ -4,7 +4,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import VacantesSection from './VacantesSection';
 import RecruitmentJourney from './RecruitmentJourney';
 import FAQSection from './FAQSection';
-import bgImage from '../assets/Carrers-image/image-2.carrers.jpg';
+import bgImage from '../assets/Carrers-image/image-2.carrers.webp';
 
 const WORDS = ["Crear.", "Innovar.", "Transformar.", "Crecer."];
 

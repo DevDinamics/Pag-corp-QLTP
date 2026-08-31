@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 import { Search, MessagesSquare, Rocket } from 'lucide-react';
-import bgImage from '../assets/Carrers-image/image-1-carrers.jpg';
+import bgImage from '../assets/Carrers-image/image-1-carrers.webp';
 
 const journeySteps = [
   {
